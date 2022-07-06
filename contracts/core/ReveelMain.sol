@@ -6,12 +6,11 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./RevenuePath.sol";
 
 contract ReveelMain is Ownable {
-
     uint256 platformFee;
     address platformWallet;
 
     RevenuePath[] public revenuePaths;
-    event RevenuePathCreated(RevenuePath metaCoin);
+    event RevenuePathCreated(RevenuePath path);
 
     address public libraryAddress;
 
@@ -25,18 +24,11 @@ contract ReveelMain is Ownable {
 
     function setPlatformFee(uint256 newFee) external onlyOwner {
         platformFee = newFee;
-
     }
 
-    function createRevenuePath(
-        address[] memory _walletList,
-        uint256[] memory _distribution
-    ) external {
-        RevenuePath path = RevenuePath(payable( Clones.clone(libraryAddress)));
-        path.initialize( _walletList,
-        _distribution,
-        platformFee,
-        platformWallet);
+    function createRevenuePath(address[] memory _walletList, uint256[] memory _distribution) external {
+        RevenuePath path = RevenuePath(payable(Clones.clone(libraryAddress)));
+        path.initialize(_walletList, _distribution, platformFee, platformWallet);
 
         revenuePaths.push(path);
         emit RevenuePathCreated(path);
