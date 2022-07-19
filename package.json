@@ -1,7 +1,7 @@
 {
   "name": "reveel-protocol-v1",
   "description": "Reveel v1 protocol contracts",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": {
     "name": "Tirtha Sarker",
     "email": "tirtha@r3vl.xyz"
