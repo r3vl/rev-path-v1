@@ -1,7 +1,9 @@
 import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "hardhat-gas-reporter"
 
 import "./tasks/accounts";
 import "./tasks/deploy";
@@ -51,7 +53,9 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   gasReporter: {
     currency: "USD",
-    enabled: process.env.REPORT_GAS ? true : false,
+    gasPrice:8,
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    enabled: false,
     excludeContracts: [],
     src: "./contracts",
   },
@@ -92,6 +96,7 @@ const config: HardhatUserConfig = {
     outDir: "typechain",
     target: "ethers-v5",
   },
+
 };
 
 export default config;
