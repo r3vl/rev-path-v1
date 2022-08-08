@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "openzeppelin-solidity/contracts/proxy/Clones.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "openzeppelin-solidity/contracts/security/Pausable.sol";
 import "./RevenuePath.sol";
 
-contract ReveelMain is Ownable {
-    
+contract ReveelMain is Ownable, Pausable {
     //@notice Fee percentage that will be applicable for additional tiers
-    uint256 public platformFee;
+    uint256 private platformFee;
     //@notice Addres of platform wallet to collect fees
-    address public platformWallet;
+    address private platformWallet;
     //@notice The list of revenue path contracts
-    RevenuePath[] public revenuePaths;
+    RevenuePath[] private revenuePaths;
     //@notice The revenue path contract address who's bytecode will be used for cloning
-    address public libraryAddress;
+    address private libraryAddress;
 
     /********************************
      *           EVENTS              *
@@ -43,7 +43,23 @@ contract ReveelMain is Ownable {
      * @param _platformFee The platform fee percentage
      * @param _platformWallet The platform fee collector wallet
      */
-    constructor(address _libraryAddress, uint256 _platformFee,address _platformWallet) {
+
+    /********************************
+     *           EVENTS              *
+     ********************************/
+    /** @dev Reverts when zero address is assigned
+     */
+    error ZeroAddressProvided();
+
+    constructor(
+        address _libraryAddress,
+        uint256 _platformFee,
+        address _platformWallet
+    ) {
+        if (_libraryAddress == address(0) || _platformWallet == address(0)) {
+            revert ZeroAddressProvided();
+        }
+
         libraryAddress = _libraryAddress;
         platformFee = _platformFee;
         platformWallet = _platformWallet;
@@ -53,10 +69,12 @@ contract ReveelMain is Ownable {
      * @param _libraryAddress The address of the library contract
      */
     function setLibraryAddress(address _libraryAddress) external onlyOwner {
+        if (_libraryAddress == address(0)) {
+            revert ZeroAddressProvided();
+        }
         libraryAddress = _libraryAddress;
         emit UpdatedLibraryAddress(libraryAddress);
     }
-
 
     /** @notice Set the platform fee percentage
      * @param newFeePercentage The new fee percentage
@@ -70,6 +88,9 @@ contract ReveelMain is Ownable {
      * @param newWallet The new fee collecting wallet
      */
     function setPlatformWallet(address newWallet) external onlyOwner {
+        if (newWallet == address(0)) {
+            revert ZeroAddressProvided();
+        }
         platformWallet = newWallet;
         emit UpdatedPlatformWallet(platformWallet);
     }
@@ -84,18 +105,55 @@ contract ReveelMain is Ownable {
         address[][] memory _walletList,
         uint256[][] memory _distribution,
         uint256[] memory tierLimit,
+        string memory _name,
         bool isImmutable
-    ) external {
+    ) external whenNotPaused {
         RevenuePath path = RevenuePath(payable(Clones.clone(libraryAddress)));
         revenuePaths.push(path);
 
-        path.initialize(_walletList, _distribution, tierLimit, platformFee, platformWallet, isImmutable, msg.sender);
+        RevenuePath.PathInfo memory pathInfo;
+        pathInfo.name = _name;
+        pathInfo.platformFee = platformFee;
+        pathInfo.platformWallet = platformWallet;
+        pathInfo.isImmutable = isImmutable;
+
+        path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
         emit RevenuePathCreated(path);
+    }
+
+    /**
+     * @notice Owner can toggle & pause contract
+     * @dev emits relevant Pausable events
+     */
+    function toggleContractState() external onlyOwner {
+        if (!paused()) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     /** @notice Get the list of revenue paths deployed and count
      */
     function getPaths() external view returns (RevenuePath[] memory, uint256 totalPaths) {
         return (revenuePaths, revenuePaths.length);
+    }
+
+    /** @notice Gets the libaray contract address
+     */
+    function getLibraryAddress() external view returns (address) {
+        return libraryAddress;
+    }
+
+    /** @notice Gets the platform fee percentage
+     */
+    function getPlatformFee() external view returns (uint256) {
+        return platformFee;
+    }
+
+    /** @notice Gets the platform fee percentage
+     */
+    function getPlatformWallet() external view returns (address) {
+        return platformWallet;
     }
 }

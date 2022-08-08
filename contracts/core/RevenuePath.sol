@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/proxy/utils/Initializable.sol";
@@ -14,55 +14,64 @@ contract RevenuePath is Ownable, Initializable {
     uint256 public constant BASE = 1e4;
 
     //@notice Addres of platform wallet to collect fees
-    address public platformFeeWallet;
+    address private platformFeeWallet;
 
     //@notice Status to flag if fee is applicable to the revenue paths
-    bool public feeRequired;
+    bool private feeRequired;
 
-    //@notice Status to flag if revenue path is immutable. True if immutable.ab
-    bool public isImmutable;
+    //@notice Status to flag if revenue path is immutable. True if immutable
+    bool private isImmutable;
 
     //@notice Fee percentage that will be applicable for additional tiers
-    uint256 public platformFee;
+    uint256 private platformFee;
 
     //@notice Current ongoing tier for eth distribution, in case multiple tiers are added
-    uint256 public currentTier;
+    uint256 private currentTier;
 
     //@noitce Total fee accumulated by the revenue path and waiting to be collected.
-    uint256 public feeAccumulated;
+    uint256 private feeAccumulated;
 
     //@notice Total ETH that has been released/withdrawn by the revenue path members
-    uint256 public totalReleased;
+    uint256 private totalReleased;
+
+    string private name;
 
     /// ETH
 
     // @notice ETH revenue waiting to be collected for a given address
-    mapping(address => uint256) public ethRevenuePending;
+    mapping(address => uint256) private ethRevenuePending;
 
     /** @notice For a given tier & address, the eth revenue distribution proportion is returned
      *  @dev Index for tiers starts from 0. i.e, the first tier is marked 0 in the list.
      */
-    mapping(uint256 => mapping(address => uint256)) public revenueProportion;
+    mapping(uint256 => mapping(address => uint256)) private revenueProportion;
 
     // @notice Amount of ETH release for a given address
-    mapping(address => uint256) public released;
+    mapping(address => uint256) private released;
 
     // @notice Total amount of ETH distributed for a given tier at that time.
-    mapping(uint256 => uint256) public totalDistributed;
+    mapping(uint256 => uint256) private totalDistributed;
 
     /// ERC20
     // @notice ERC20 revenue share/proportion for a given address
-    mapping(address => uint256) public erc20RevenueShare;
+    mapping(address => uint256) private erc20RevenueShare;
 
     // @notice For a given token & wallet address, the amount of the token that has been released. erc20Released[token][wallet]
-    mapping(address => mapping(address => uint256)) public erc20Released;
+    mapping(address => mapping(address => uint256)) private erc20Released;
 
     // @notice Total ERC20 released from the revenue path for a given token address
-    mapping(address => uint256) public totalERC20Released;
+    mapping(address => uint256) private totalERC20Released;
 
     struct Revenue {
         uint256 limitAmount;
         address[] walletList;
+    }
+
+    struct PathInfo {
+        string name;
+        uint256 platformFee;
+        address platformWallet;
+        bool isImmutable;
     }
 
     Revenue[] revenueTiers;
@@ -90,6 +99,21 @@ contract RevenuePath is Ownable, Initializable {
      * @param payment The amount of the given token the wallet has claimed
      */
     event ERC20PaymentReleased(address indexed token, address indexed account, uint256 indexed payment);
+
+    event RevenueTiersAdded(
+        address[][] addedWalletLists,
+        uint256[][] addedDistributionLists,
+        uint256 indexed newTiersCount
+    );
+
+    event RevenueTiersUpdated(
+        address[] updatedWalletList,
+        uint256[] updatedDistributionLists,
+        uint256 indexed updatedTierNumber,
+        uint256 indexed newLimit
+    );
+
+    event ERC20RevneuUpdated(address[] updatedWalletLists, uint256[] updatedDistributionLists);
 
     /********************************
      *           MODIFIERS          *
@@ -161,17 +185,23 @@ contract RevenuePath is Ownable, Initializable {
      */
     error InsufficentBalance(uint256 contractBalance, uint256 requiredAmount);
 
+    error TotalShareNotHundred();
+
     /********************************
      *           FUNCTIONS           *
      ********************************/
+
+    /** @notice Contract ETH receiver, triggers distribution. Called when ETH is transferred to the revenue path.
+     */
+    receive() external payable {
+        distributeHoldings(msg.value, currentTier);
+    }
 
     /** @notice The initializer for revenue path, directly called from the RevenueMain contract.._
      * @param _walletList A nested array list of member wallets
      * @param _distribution A nested array list of distribution percentages
      * @param _tierLimit A list of tier limits
-     * @param _platformFee The fee percentage to be charged for multi tiered ETH distribution
-     * @param _platformFeeWallet The wallet that collects fees on behalf of the platform
-     * @param _isImmutable Flag to check if the revenue path is immutable. True if Immutable.
+     * @param pathInfo The basic info related to the path
      * @param _owner The owner of the revenue path
      */
 
@@ -179,11 +209,9 @@ contract RevenuePath is Ownable, Initializable {
         address[][] memory _walletList,
         uint256[][] memory _distribution,
         uint256[] memory _tierLimit,
-        uint256 _platformFee,
-        address _platformFeeWallet,
-        bool _isImmutable,
+        PathInfo memory pathInfo,
         address _owner
-    ) public initializer {
+    ) external initializer {
         if (_walletList.length != _distribution.length) {
             revert WalletAndDistributionCountMismatch({
                 walletCount: _walletList.length,
@@ -193,10 +221,6 @@ contract RevenuePath is Ownable, Initializable {
 
         if ((_walletList.length - 1) != _tierLimit.length) {
             revert WalletAndTierLimitMismatch({ walletCount: _walletList.length, tierLimitCount: _tierLimit.length });
-        }
-
-        if (_platformFeeWallet == address(0)) {
-            revert ZeroAddressProvided();
         }
 
         uint256 listLength = _walletList.length;
@@ -210,26 +234,29 @@ contract RevenuePath is Ownable, Initializable {
             if (i != listLength - 1) {
                 tier.limitAmount = _tierLimit[i];
             }
-            // uint256 totalShare;
+            uint256 totalShare;
             for (j = 0; j < walletMembers; j++) {
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
-                // totalShare+=_distribution[j][i];
+                totalShare += (_distribution[i])[j];
             }
-            // require(totalShare == BASE, "SHARE_MUST_BE_HUNDRED_PERCENT");
+            if (totalShare != BASE) {
+                revert TotalShareNotHundred();
+            }
             revenueTiers.push(tier);
         }
 
-        uint256 erc20WalletMembers = _walletList[0].length;
+        uint256 erc20WalletMembers = _walletList[listLength - 1].length;
         for (uint256 k = 0; k < erc20WalletMembers; k++) {
-            erc20RevenueShare[(_walletList[0])[k]] = (_distribution[0])[k];
+            erc20RevenueShare[(_walletList[listLength - 1])[k]] = (_distribution[listLength - 1])[k];
         }
 
         if (revenueTiers.length > 1) {
             feeRequired = true;
         }
-        platformFeeWallet = _platformFeeWallet;
-        platformFee = _platformFee;
-        isImmutable = _isImmutable;
+        platformFeeWallet = pathInfo.platformWallet;
+        platformFee = pathInfo.platformFee;
+        isImmutable = pathInfo.isImmutable;
+        name = pathInfo.name;
         _transferOwnership(_owner);
     }
 
@@ -253,7 +280,6 @@ contract RevenuePath is Ownable, Initializable {
         uint256 listLength = _walletList.length;
         uint256 nextRevenueTier = revenueTiers.length;
         for (uint256 i = 0; i < listLength; i++) {
-
             if (previousTierLimit[i] <= totalDistributed[nextRevenueTier - 1]) {
                 revert LimitNotGreaterThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
@@ -263,16 +289,32 @@ contract RevenuePath is Ownable, Initializable {
 
             Revenue memory tier;
             uint256 walletMembers = _walletList[i].length;
+
+            if (walletMembers != _distribution[i].length) {
+                revert WalletAndDistributionCountMismatch({
+                    walletCount: walletMembers,
+                    distributionCount: _distribution[i].length
+                });
+            }
             revenueTiers[nextRevenueTier - 1].limitAmount = previousTierLimit[i];
             tier.walletList = _walletList[i];
-
+            uint256 totalShares;
             for (uint256 j = 0; j < walletMembers; j++) {
-                revenueProportion[nextRevenueTier][_walletList[j][i]] = _distribution[j][i];
+                revenueProportion[nextRevenueTier][(_walletList[i])[j]] = (_distribution[i])[j];
+                totalShares += (_distribution[i])[j];
             }
 
+            if (totalShares != BASE) {
+                revert TotalShareNotHundred();
+            }
             revenueTiers.push(tier);
             nextRevenueTier += 1;
         }
+        if (!feeRequired) {
+            feeRequired = true;
+        }
+
+        emit RevenueTiersAdded(_walletList, _distribution, revenueTiers.length);
     }
 
     /** @notice Update given revenue tier. Only for mutable revenue path
@@ -287,16 +329,10 @@ contract RevenuePath is Ownable, Initializable {
         uint256 newLimit,
         uint256 tierNumber
     ) external isAllowed onlyOwner {
-
-        if (tierNumber < currentTier) {
+        if (tierNumber <= currentTier || tierNumber > (revenueTiers.length - 1)) {
             revert IneligibileTierUpdate({ currentTier: currentTier, requestedTier: tierNumber });
         }
-        if (newLimit <= totalDistributed[tierNumber]) {
-            revert LimitNotGreaterThanTotalDistributed({
-                alreadyDistributed: totalDistributed[tierNumber],
-                proposedNewLimit: newLimit
-            });
-        }
+
         if (_walletList.length != _distribution.length) {
             revert WalletAndDistributionCountMismatch({
                 walletCount: _walletList.length,
@@ -304,13 +340,20 @@ contract RevenuePath is Ownable, Initializable {
             });
         }
 
-        revenueTiers[tierNumber].limitAmount = newLimit;
+        revenueTiers[tierNumber].limitAmount = (tierNumber == revenueTiers.length - 1) ? 0 : newLimit;
 
         uint256 listLength = _walletList.length;
-
+        uint256 totalShares;
         for (uint256 i = 0; i < listLength; i++) {
             revenueProportion[tierNumber][_walletList[i]] = _distribution[i];
+            totalShares += _distribution[i];
         }
+
+        if (totalShares != BASE) {
+            revert TotalShareNotHundred();
+        }
+
+        emit RevenueTiersUpdated(_walletList, _distribution, tierNumber, newLimit);
     }
 
     /** @notice Update ERC20 revenue distribution. Only for mutable revenue path
@@ -322,7 +365,6 @@ contract RevenuePath is Ownable, Initializable {
         isAllowed
         onlyOwner
     {
-        // require(_walletList.length == _distribution.length, "WALLET_DISTRIBUTION_LIST_MUST_BE_EQUAL");
         if (_walletList.length != _distribution.length) {
             revert WalletAndDistributionCountMismatch({
                 walletCount: _walletList.length,
@@ -331,16 +373,17 @@ contract RevenuePath is Ownable, Initializable {
         }
 
         uint256 listLength = _walletList.length;
-
+        uint256 totalShares;
         for (uint256 i = 0; i < listLength; i++) {
             erc20RevenueShare[_walletList[i]] = _distribution[i];
+            totalShares += _distribution[i];
         }
-    }
 
-    /** @notice Contract ETH receiver, triggers distribution. Called when ETH is transferred to the revenue path.
-     */
-    receive() external payable {
-        distributeHoldings(msg.value, currentTier);
+        if (totalShares != BASE) {
+            revert TotalShareNotHundred();
+        }
+
+        emit ERC20RevneuUpdated(_walletList, _distribution);
     }
 
     /** @notice Releases distributed ETH for the provided address
@@ -371,7 +414,7 @@ contract RevenuePath is Ownable, Initializable {
      * @param token The address of the ERC20 token
      * @param account The member's wallet address
      */
-    function release(address token, address account) external {
+    function releaseERC20(address token, address account) external {
         if (erc20RevenueShare[account] == 0) {
             revert ZeroERC20Shares({ wallet: account });
         }
@@ -403,12 +446,111 @@ contract RevenuePath is Ownable, Initializable {
         return (limit, listWallet);
     }
 
+    /** @notice Get the totalNumber of revenue tiers in the revenue path
+     */
+    function getTotalRevenueTiers() external view returns (uint256 total) {
+        return revenueTiers.length;
+    }
+
+    /** @notice Get the current ongoing tier of revenue path
+     */
+    function getCurrentTier() external view returns (uint256 tierNumber) {
+        return currentTier;
+    }
+
+    /** @notice Get the current ongoing tier of revenue path
+     */
+    function getFeeRequirementStatus() external view returns (bool required) {
+        return feeRequired;
+    }
+
+    /** @notice Get the pending eth balance for given address
+     */
+    function getPendingEthBalance(address account) external view returns (uint256 pendingAmount) {
+        return ethRevenuePending[account];
+    }
+
+    /** @notice Get the ETH revenue proportion for a given account at a given tier
+     */
+    function getRevenueProportion(uint256 tier, address account) external view returns (uint256 proportion) {
+        return revenueProportion[tier][account];
+    }
+
+    /** @notice Get the amount of ETH distrbuted for a given tier
+     */
+
+    function getTierDistributedAmount(uint256 tier) external view returns (uint256 amount) {
+        return totalDistributed[tier];
+    }
+
+    /** @notice Get the amount of ETH accumulated for fee collection
+     */
+
+    function getTotalFeeAccumulated() external view returns (uint256 amount) {
+        return feeAccumulated;
+    }
+
+    /** @notice Get the amount of ETH accumulated for fee collection
+     */
+
+    function getERC20Released(address token, address account) external view returns (uint256 amount) {
+        return erc20Released[token][account];
+    }
+
+    /** @notice Get the platform wallet address
+     */
+    function getPlatformWallet() external view returns (address) {
+        return platformFeeWallet;
+    }
+
+    /** @notice Get the platform fee percentage
+     */
+    function getPlatformFee() external view returns (uint256) {
+        return platformFee;
+    }
+
+    /** @notice Get the revenue path Immutability status
+     */
+    function getImmutabilityStatus() external view returns (bool) {
+        return isImmutable;
+    }
+
+    /** @notice Get the total amount of eth withdrawn from revenue path
+     */
+    function getTotalEthReleased() external view returns (uint256) {
+        return totalReleased;
+    }
+
+    /** @notice Get the revenue path name
+     */
+    function getRevenuePathName() external view returns (string memory){
+        return name;
+    }
+    
+
+    /** @notice Get the amount of total eth withdrawn by the account
+     */
+    function getEthWithdrawn(address account) external view returns (uint256){
+        return released[account];
+    }
+
+    /** @notice Get the erc20 revenue share percentage for given account
+     */
+    function getErc20WalletShare(address account) external view returns (uint256){
+        return erc20RevenueShare[account];
+    }
+
+    /** @notice Get the total erc2o released from the revenue path.
+     */
+    function getTotalErc20Released(address token) external view returns (uint256){
+        return totalERC20Released[token];
+    }
+
     /** @notice Transfer handler for ETH
      * @param recipient The address of the receiver
      * @param amount The amount of ETH to be received
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "INSUFFICIENT_BALANCE");
         if (address(this).balance < amount) {
             revert InsufficentBalance({ contractBalance: address(this).balance, requiredAmount: amount });
         }

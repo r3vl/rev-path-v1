@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 contract RevenueAggregator {
 
@@ -37,7 +37,7 @@ contract RevenueAggregator {
         for (uint256 i = 0; i < pathLength; i++) {
             require(paths[i] != address(0), "ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");
             (bool status, bytes memory result) = address(paths[i]).call(
-                abi.encodeWithSignature("release(address,address)",tokenAddress, targetWallet)
+                abi.encodeWithSignature("releaseERC20(address,address)",tokenAddress, targetWallet)
             );
             emit WithdrawStatus(paths[i], status, result);
         }
