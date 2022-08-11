@@ -56,7 +56,8 @@ contract RevenuePath is Ownable, Initializable {
     // @notice ERC20 revenue share/proportion for a given address
     mapping(address => uint256) private erc20RevenueShare;
 
-    // @notice For a given token & wallet address, the amount of the token that has been released. erc20Released[token][wallet]
+    /**  @notice For a given token & wallet address, the amount of the token that has been released
+    . erc20Released[token][wallet]*/
     mapping(address => mapping(address => uint256)) private erc20Released;
 
     // @notice Total ERC20 released from the revenue path for a given token address
@@ -280,7 +281,7 @@ contract RevenuePath is Ownable, Initializable {
         uint256 listLength = _walletList.length;
         uint256 nextRevenueTier = revenueTiers.length;
         for (uint256 i = 0; i < listLength; i++) {
-            if (previousTierLimit[i] <= totalDistributed[nextRevenueTier - 1]) {
+            if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
                 revert LimitNotGreaterThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
                     proposedNewLimit: previousTierLimit[i]
@@ -329,8 +330,15 @@ contract RevenuePath is Ownable, Initializable {
         uint256 newLimit,
         uint256 tierNumber
     ) external isAllowed onlyOwner {
-        if (tierNumber <= currentTier || tierNumber > (revenueTiers.length - 1)) {
+        if (tierNumber < currentTier || tierNumber > (revenueTiers.length - 1)) {
             revert IneligibileTierUpdate({ currentTier: currentTier, requestedTier: tierNumber });
+        }
+
+        if (newLimit < totalDistributed[tierNumber]) {
+            revert LimitNotGreaterThanTotalDistributed({
+                alreadyDistributed: totalDistributed[tierNumber],
+                proposedNewLimit: newLimit
+            });
         }
 
         if (_walletList.length != _distribution.length) {
@@ -521,28 +529,27 @@ contract RevenuePath is Ownable, Initializable {
         return totalReleased;
     }
 
-    /** @notice Get the revenue path name
+    /** @notice Get the revenue path name.
      */
-    function getRevenuePathName() external view returns (string memory){
+    function getRevenuePathName() external view returns (string memory) {
         return name;
     }
-    
 
     /** @notice Get the amount of total eth withdrawn by the account
      */
-    function getEthWithdrawn(address account) external view returns (uint256){
+    function getEthWithdrawn(address account) external view returns (uint256) {
         return released[account];
     }
 
     /** @notice Get the erc20 revenue share percentage for given account
      */
-    function getErc20WalletShare(address account) external view returns (uint256){
+    function getErc20WalletShare(address account) external view returns (uint256) {
         return erc20RevenueShare[account];
     }
 
     /** @notice Get the total erc2o released from the revenue path.
      */
-    function getTotalErc20Released(address token) external view returns (uint256){
+    function getTotalErc20Released(address token) external view returns (uint256) {
         return totalERC20Released[token];
     }
 
