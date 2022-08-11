@@ -47,14 +47,6 @@ Lint the Solidity code:
 $ npm run lint:sol
 ```
 
-### Lint TypeScript
-
-Lint the TypeScript code:
-
-```sh
-$ npm run lint:ts
-```
-
 ### Test
 
 Run the Mocha tests:
@@ -89,10 +81,14 @@ $ npm run clean
 
 ### Deploy
 
-Deploy the contracts to Hardhat Network:
+Deploy the contracts to the network of your choice. Make sure to review the initializing variables in the scripts.
 
 ```sh
-$ yarn deploy --greeting "Greetings Earthlings!"
+$ npx hardhat run deploy/{SCRIPT_NAME} --network {NETWORK_NAME
+```
+e.g: 
+```sh
+$ npx hardhat run deploy/1_ReveelMain_deploy.js --network goerli
 ```
 
 

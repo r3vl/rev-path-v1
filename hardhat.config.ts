@@ -5,10 +5,12 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "hardhat-gas-reporter";
 import "hardhat-docgen";
-import "./tasks/accounts";
-import "./tasks/deploy";
 
 import { resolve } from "path";
+
+import "./tasks/accounts";
+
+
 
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
@@ -37,7 +39,7 @@ if (!infuraApiKey) {
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string = "https://" + network + ".infura.io/v3/" + process.env.INFURA_KEY;
   return {
     accounts: {
       count: 10,
@@ -55,7 +57,6 @@ const config: HardhatUserConfig = {
     currency: "USD",
     gasPrice: 8,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    enabled: false,
     excludeContracts: [],
     src: "./contracts",
   },
