@@ -7,8 +7,11 @@
 - Withdraw revenue in single transaction
 
 ## Fee
+
 - For ETH: If additional layer is added to distrbution of ETH, X% of fee is taken for distribution.
+
 ---
+
 ### Pre Requisites
 
 Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment
@@ -17,7 +20,7 @@ variable. Follow the example in `.env.example`. If you don't already have a mnem
 Then, proceed with installing dependencies:
 
 ```sh
-yarn install
+npm install
 ```
 
 ### Compile
@@ -25,7 +28,7 @@ yarn install
 Compile the smart contracts with Hardhat:
 
 ```sh
-$ yarn compile
+$ npm run compile
 ```
 
 ### TypeChain
@@ -33,7 +36,7 @@ $ yarn compile
 Compile the smart contracts and generate TypeChain artifacts:
 
 ```sh
-$ yarn typechain
+$ npm run typechain
 ```
 
 ### Lint Solidity
@@ -41,7 +44,7 @@ $ yarn typechain
 Lint the Solidity code:
 
 ```sh
-$ yarn lint:sol
+$ npm run lint:sol
 ```
 
 ### Lint TypeScript
@@ -49,7 +52,7 @@ $ yarn lint:sol
 Lint the TypeScript code:
 
 ```sh
-$ yarn lint:ts
+$ npm run lint:ts
 ```
 
 ### Test
@@ -57,7 +60,7 @@ $ yarn lint:ts
 Run the Mocha tests:
 
 ```sh
-$ yarn test
+$ npm run test
 ```
 
 ### Coverage
@@ -65,7 +68,7 @@ $ yarn test
 Generate the code coverage report:
 
 ```sh
-$ yarn coverage
+$ npm run coverage
 ```
 
 ### Report Gas
@@ -73,7 +76,7 @@ $ yarn coverage
 See the gas usage per unit test and average gas per method call:
 
 ```sh
-$ REPORT_GAS=true yarn test
+$ REPORT_GAS=true npm run test
 ```
 
 ### Clean
@@ -81,7 +84,7 @@ $ REPORT_GAS=true yarn test
 Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
 
 ```sh
-$ yarn clean
+$ npm run clean
 ```
 
 ### Deploy
@@ -92,17 +95,4 @@ Deploy the contracts to Hardhat Network:
 $ yarn deploy --greeting "Greetings Earthlings!"
 ```
 
-## Syntax Highlighting
 
-If you use VSCode, you can enjoy syntax highlighting for your Solidity code via the
-[vscode-solidity](https://github.com/juanfranblanco/vscode-solidity) extension. The recommended approach to set the
-compiler version is to add the following fields to your VSCode user settings:
-
-```json
-{
-  "solidity.compileUsingRemoteVersion": "v0.8.4+commit.c7e474f2",
-  "solidity.defaultCompiler": "remote"
-}
-```
-
-Where of course `v0.8.4+commit.c7e474f2` can be replaced with any other version.
