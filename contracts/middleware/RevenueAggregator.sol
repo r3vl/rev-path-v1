@@ -3,7 +3,6 @@
 pragma solidity 0.8.9;
 
 contract RevenueAggregator {
-
     /** @notice Emits when a withdrawal takes place
      * @param path The address of the revenue path
      * @param status Whether the withdrawal suceeded
@@ -31,13 +30,17 @@ contract RevenueAggregator {
      * @param targetWallet The wallet for which the withdrawal is being made
      * @param tokenAddress The ERC20 token for which the request is being made.
      */
-    function withdrawPathErc20(address[] calldata paths, address targetWallet, address tokenAddress) external {
+    function withdrawPathErc20(
+        address[] calldata paths,
+        address targetWallet,
+        address tokenAddress
+    ) external {
         uint256 pathLength = paths.length;
 
         for (uint256 i = 0; i < pathLength; i++) {
             require(paths[i] != address(0), "ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");
             (bool status, bytes memory result) = address(paths[i]).call(
-                abi.encodeWithSignature("releaseERC20(address,address)",tokenAddress, targetWallet)
+                abi.encodeWithSignature("releaseERC20(address,address)", tokenAddress, targetWallet)
             );
             emit WithdrawStatus(paths[i], status, result);
         }
