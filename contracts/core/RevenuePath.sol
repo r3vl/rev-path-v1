@@ -23,7 +23,7 @@ contract RevenuePath is Ownable, Initializable {
     bool private isImmutable;
 
     //@notice Fee percentage that will be applicable for additional tiers
-    uint256 private platformFee;
+    uint88 private platformFee;
 
     //@notice Current ongoing tier for eth distribution, in case multiple tiers are added
     uint256 private currentTier;
@@ -69,10 +69,10 @@ contract RevenuePath is Ownable, Initializable {
     }
 
     struct PathInfo {
-        string name;
-        uint256 platformFee;
+        uint88 platformFee;
         address platformWallet;
         bool isImmutable;
+        string name;
     }
 
     Revenue[] revenueTiers;
@@ -227,7 +227,7 @@ contract RevenuePath is Ownable, Initializable {
         uint256 listLength = _walletList.length;
         uint256 i;
         uint256 j;
-        for (i = 0; i < listLength; i++) {
+        for (i = 0; i < listLength;) {
             Revenue memory tier;
 
             uint256 walletMembers = _walletList[i].length;
@@ -236,19 +236,29 @@ contract RevenuePath is Ownable, Initializable {
                 tier.limitAmount = _tierLimit[i];
             }
             uint256 totalShare;
-            for (j = 0; j < walletMembers; j++) {
+            for (j = 0; j < walletMembers; ) {
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShare += (_distribution[i])[j];
+                unchecked {
+                    j++;
+                }
             }
             if (totalShare != BASE) {
                 revert TotalShareNotHundred();
             }
             revenueTiers.push(tier);
+
+            unchecked {
+                i++;
+            }
         }
 
         uint256 erc20WalletMembers = _walletList[listLength - 1].length;
-        for (uint256 k = 0; k < erc20WalletMembers; k++) {
+        for (uint256 k = 0; k < erc20WalletMembers; ) {
             erc20RevenueShare[(_walletList[listLength - 1])[k]] = (_distribution[listLength - 1])[k];
+            unchecked {
+                k++;
+            }
         }
 
         if (revenueTiers.length > 1) {
@@ -280,7 +290,7 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 nextRevenueTier = revenueTiers.length;
-        for (uint256 i = 0; i < listLength; i++) {
+        for (uint256 i = 0; i < listLength; ) {
             if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
                 revert LimitNotGreaterThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
@@ -310,6 +320,10 @@ contract RevenuePath is Ownable, Initializable {
             }
             revenueTiers.push(tier);
             nextRevenueTier += 1;
+
+            unchecked {
+                i++;
+            }
         }
         if (!feeRequired) {
             feeRequired = true;
@@ -352,9 +366,12 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 totalShares;
-        for (uint256 i = 0; i < listLength; i++) {
+        for (uint256 i = 0; i < listLength;) {
             revenueProportion[tierNumber][_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
+            unchecked {
+                 i++;
+            }
         }
 
         if (totalShares != BASE) {
@@ -382,9 +399,12 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 totalShares;
-        for (uint256 i = 0; i < listLength; i++) {
+        for (uint256 i = 0; i < listLength; ) {
             erc20RevenueShare[_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
+            unchecked {
+                i++;
+            }
         }
 
         if (totalShares != BASE) {
@@ -593,9 +613,12 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 totalMembers = revenueTiers[presentTier].walletList.length;
 
-        for (uint256 i = 0; i < totalMembers; i++) {
+        for (uint256 i = 0; i < totalMembers; ) {
             address wallet = revenueTiers[presentTier].walletList[i];
             ethRevenuePending[wallet] += ((currentTierDistribution * revenueProportion[presentTier][wallet]) / BASE);
+            unchecked {
+                i++;
+            }
         }
 
         totalDistributed[presentTier] += totalDistributionAmount;

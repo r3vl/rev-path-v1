@@ -40,7 +40,7 @@ interface RevenuePathInterface extends ethers.utils.Interface {
     "getTotalEthReleased()": FunctionFragment;
     "getTotalFeeAccumulated()": FunctionFragment;
     "getTotalRevenueTiers()": FunctionFragment;
-    "initialize(address[][],uint256[][],uint256[],(string,uint256,address,bool),address)": FunctionFragment;
+    "initialize(address[][],uint256[][],uint256[],(uint88,address,bool,string),address)": FunctionFragment;
     "owner()": FunctionFragment;
     "release(address)": FunctionFragment;
     "releaseERC20(address,address)": FunctionFragment;
@@ -130,10 +130,10 @@ interface RevenuePathInterface extends ethers.utils.Interface {
       BigNumberish[][],
       BigNumberish[],
       {
-        name: string;
         platformFee: BigNumberish;
         platformWallet: string;
         isImmutable: boolean;
+        name: string;
       },
       string
     ]
@@ -453,10 +453,10 @@ export class RevenuePath extends BaseContract {
       _distribution: BigNumberish[][],
       _tierLimit: BigNumberish[],
       pathInfo: {
-        name: string;
         platformFee: BigNumberish;
         platformWallet: string;
         isImmutable: boolean;
+        name: string;
       },
       _owner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -575,10 +575,10 @@ export class RevenuePath extends BaseContract {
     _distribution: BigNumberish[][],
     _tierLimit: BigNumberish[],
     pathInfo: {
-      name: string;
       platformFee: BigNumberish;
       platformWallet: string;
       isImmutable: boolean;
+      name: string;
     },
     _owner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -697,10 +697,10 @@ export class RevenuePath extends BaseContract {
       _distribution: BigNumberish[][],
       _tierLimit: BigNumberish[],
       pathInfo: {
-        name: string;
         platformFee: BigNumberish;
         platformWallet: string;
         isImmutable: boolean;
+        name: string;
       },
       _owner: string,
       overrides?: CallOverrides
@@ -955,10 +955,10 @@ export class RevenuePath extends BaseContract {
       _distribution: BigNumberish[][],
       _tierLimit: BigNumberish[],
       pathInfo: {
-        name: string;
         platformFee: BigNumberish;
         platformWallet: string;
         isImmutable: boolean;
+        name: string;
       },
       _owner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1088,10 +1088,10 @@ export class RevenuePath extends BaseContract {
       _distribution: BigNumberish[][],
       _tierLimit: BigNumberish[],
       pathInfo: {
-        name: string;
         platformFee: BigNumberish;
         platformWallet: string;
         isImmutable: boolean;
+        name: string;
       },
       _owner: string,
       overrides?: Overrides & { from?: string | Promise<string> }

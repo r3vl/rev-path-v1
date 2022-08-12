@@ -16,12 +16,14 @@ contract RevenueAggregator {
     function withdrawPathEth(address[] calldata paths, address targetWallet) external {
         uint256 pathLength = paths.length;
 
-        for (uint256 i = 0; i < pathLength; i++) {
+        for (uint256 i = 0; i < pathLength; ) {
             require(paths[i] != address(0), "ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");
             (bool status, bytes memory result) = address(paths[i]).call(
                 abi.encodeWithSignature("release(address)", targetWallet)
             );
+            
             emit WithdrawStatus(paths[i], status, result);
+            unchecked{i++;}
         }
     }
 
@@ -37,12 +39,15 @@ contract RevenueAggregator {
     ) external {
         uint256 pathLength = paths.length;
 
-        for (uint256 i = 0; i < pathLength; i++) {
+        for (uint256 i = 0; i < pathLength; ) {
             require(paths[i] != address(0), "ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");
             (bool status, bytes memory result) = address(paths[i]).call(
                 abi.encodeWithSignature("releaseERC20(address,address)", tokenAddress, targetWallet)
             );
+            
             emit WithdrawStatus(paths[i], status, result);
+            unchecked{i++;}
+            
         }
     }
 }

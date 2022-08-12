@@ -30,7 +30,7 @@ interface ReveelMainInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setLibraryAddress(address)": FunctionFragment;
-    "setPlatformFee(uint256)": FunctionFragment;
+    "setPlatformFee(uint88)": FunctionFragment;
     "setPlatformWallet(address)": FunctionFragment;
     "toggleContractState()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -130,7 +130,7 @@ interface ReveelMainInterface extends ethers.utils.Interface {
     "RevenuePathCreated(address)": EventFragment;
     "Unpaused(address)": EventFragment;
     "UpdatedLibraryAddress(address)": EventFragment;
-    "UpdatedPlatformFee(uint256)": EventFragment;
+    "UpdatedPlatformFee(uint88)": EventFragment;
     "UpdatedPlatformWallet(address)": EventFragment;
   };
 
@@ -406,7 +406,7 @@ export class ReveelMain extends BaseContract {
       newLibrary?: null
     ): TypedEventFilter<[string], { newLibrary: string }>;
 
-    "UpdatedPlatformFee(uint256)"(
+    "UpdatedPlatformFee(uint88)"(
       newFeePercentage?: null
     ): TypedEventFilter<[BigNumber], { newFeePercentage: BigNumber }>;
 
