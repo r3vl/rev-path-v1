@@ -11,12 +11,13 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
  */
 
 contract RevenuePath is Ownable, Initializable {
-    uint256 public constant BASE = 1e4;
+    uint256 public constant BASE = 1e4; // this is not clear to me
 
     //@notice Addres of platform wallet to collect fees
     address private platformFeeWallet;
 
     //@notice Status to flag if fee is applicable to the revenue paths
+    // what about feeEnabled?
     bool private feeRequired;
 
     //@notice Status to flag if revenue path is immutable. True if immutable
@@ -34,6 +35,7 @@ contract RevenuePath is Ownable, Initializable {
     //@notice Total ETH that has been released/withdrawn by the revenue path members
     uint256 private totalReleased;
 
+    // What do we need a name for? Could be fetched from the events instead
     string private name;
 
     /// ETH
@@ -54,6 +56,7 @@ contract RevenuePath is Ownable, Initializable {
 
     /// ERC20
     // @notice ERC20 revenue share/proportion for a given address
+    // does this allow for different proportions for different tokens?
     mapping(address => uint256) private erc20RevenueShare;
 
     /**  @notice For a given token & wallet address, the amount of the token that has been released
@@ -75,6 +78,7 @@ contract RevenuePath is Ownable, Initializable {
         string name;
     }
 
+    // should this not be public or private?
     Revenue[] revenueTiers;
 
     /********************************
@@ -86,7 +90,7 @@ contract RevenuePath is Ownable, Initializable {
      * @param distributionTier the tier index at which the distribution is being done.
      * @param walletList the list of wallet addresses for which ETH has been distributed
      */
-    event EthDistrbuted(uint256 indexed amount, uint256 indexed distributionTier, address[] walletList);
+    event EthDistributed(uint256 indexed amount, uint256 indexed distributionTier, address[] walletList);
 
     /** @notice Emits when ETH payment is withdrawn/claimed by a member
      * @param account The wallet for which ETH has been claimed for
@@ -121,6 +125,7 @@ contract RevenuePath is Ownable, Initializable {
      ********************************/
     /** @notice Entrant guard for mutable contract methods
      */
+    // why not whenMutable?
     modifier isAllowed() {
         // require(!isImmutable, "IMMUTABLE_PATH_CAN_NOT_USE_THIS");
         if (isImmutable) {
@@ -139,7 +144,7 @@ contract RevenuePath is Ownable, Initializable {
      */
     error WalletAndDistributionCountMismatch(uint256 walletCount, uint256 distributionCount);
 
-    /** @dev Reverts when passed wallet list and tier limit count doesn't add up. 
+    /** @dev Reverts when passed wallet list and tier limit count doesn't add up.
        The tier limit count should be 1 less than wallet list
      * @param walletCount  Length of wallet list
      * @param tierLimitCount Length of tier limit list
@@ -219,7 +224,7 @@ contract RevenuePath is Ownable, Initializable {
                 distributionCount: _distribution.length
             });
         }
-
+        // can you not have a length smaller than the tierLimit?
         if ((_walletList.length - 1) != _tierLimit.length) {
             revert WalletAndTierLimitMismatch({ walletCount: _walletList.length, tierLimitCount: _tierLimit.length });
         }
@@ -237,6 +242,7 @@ contract RevenuePath is Ownable, Initializable {
             }
             uint256 totalShare;
             for (j = 0; j < walletMembers; ) {
+                // what do the parenthesis around _distribution[i] do?
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShare += (_distribution[i])[j];
                 unchecked {
@@ -264,6 +270,7 @@ contract RevenuePath is Ownable, Initializable {
         if (revenueTiers.length > 1) {
             feeRequired = true;
         }
+        // do we need to set these before feeRequired is true?
         platformFeeWallet = pathInfo.platformWallet;
         platformFee = pathInfo.platformFee;
         isImmutable = pathInfo.isImmutable;
@@ -425,6 +432,7 @@ contract RevenuePath is Ownable, Initializable {
         if (feeAccumulated > 0) {
             uint256 value = feeAccumulated;
             feeAccumulated = 0;
+            // would it not be useful to has totalFeeReleased as well?
             totalReleased += value;
             sendValue(payable(platformFeeWallet), value);
         }
@@ -589,6 +597,9 @@ contract RevenuePath is Ownable, Initializable {
     /** @notice Distributes ETH based on the required conditions of the tier sequences
      * @param amount The amount of ETH to be distributed
      * @param presentTier The current tier for which distribution will take place.
+     * I wouldn't mind an plain english explanation of the logic here
+     * distribute to current tier the remaining available amount, and delegate the rest to the next tier
+     *
      */
 
     function distributeHoldings(uint256 amount, uint256 presentTier) private {
@@ -623,7 +634,7 @@ contract RevenuePath is Ownable, Initializable {
 
         totalDistributed[presentTier] += totalDistributionAmount;
 
-        emit EthDistrbuted(currentTierDistribution, presentTier, revenueTiers[presentTier].walletList);
+        emit EthDistributed(currentTierDistribution, presentTier, revenueTiers[presentTier].walletList);
 
         if (nextTierDistribution > 0) {
             currentTier += 1;

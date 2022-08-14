@@ -8,8 +8,8 @@ import "./RevenuePath.sol";
 
 contract ReveelMain is Ownable, Pausable {
     //@notice Fee percentage that will be applicable for additional tiers
-    uint88 private platformFee;
-    //@notice Addres of platform wallet to collect fees
+    uint256 private platformFee;
+    //@notice Address of platform wallet to collect fees
     address private platformWallet;
     //@notice The list of revenue path contracts
     RevenuePath[] private revenuePaths;
@@ -22,8 +22,9 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Emits when a new revenue path is created
      * @param path The address of the new revenue path
      */
-    event RevenuePathCreated(RevenuePath path);
-    /** @notice Updates the libaray contract address
+     // if we index we can then query the name, deploy block etc
+    event RevenuePathCreated(RevenuePath indexed path);
+    /** @notice Updates the libray contract address
      * @param newLibrary The address of the library contract
      */
     event UpdatedLibraryAddress(address newLibrary);
@@ -60,6 +61,7 @@ contract ReveelMain is Ownable, Pausable {
             revert ZeroAddressProvided();
         }
 
+        // Should we not emit platform fee and library update event here?
         libraryAddress = _libraryAddress;
         platformFee = _platformFee;
         platformWallet = _platformWallet;
@@ -105,6 +107,7 @@ contract ReveelMain is Ownable, Pausable {
         address[][] memory _walletList,
         uint256[][] memory _distribution,
         uint256[] memory tierLimit,
+        // is this necessary?
         string memory _name,
         bool isImmutable
     ) external whenNotPaused {
@@ -133,12 +136,14 @@ contract ReveelMain is Ownable, Pausable {
         }
     }
 
+    // why do we need this array?
     /** @notice Get the list of revenue paths deployed and count
      */
     function getPaths() external view returns (RevenuePath[] memory, uint256 totalPaths) {
         return (revenuePaths, revenuePaths.length);
     }
 
+    // what about setting the variables to public?
     /** @notice Gets the libaray contract address
      */
     function getLibraryAddress() external view returns (address) {

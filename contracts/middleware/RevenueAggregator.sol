@@ -3,10 +3,15 @@
 pragma solidity 0.8.9;
 
 contract RevenueAggregator {
+    // can we not have a function that withdraws for both ETH and ERC20s?
+
     /** @notice Emits when a withdrawal takes place
      * @param path The address of the revenue path
      * @param status Whether the withdrawal suceeded
      */
+    // should we not stick to ReleaseStatus? also, status is an arg, what about simply Released?
+    // (although i see how a failed Release should not be a released. maybe then 2 events, Released and ReleasedFailed?)
+    // also, add the ERC20 address and amount to the event so that we can track these specifically? (not sure about this tbh)
     event WithdrawStatus(address indexed path, bool indexed status, bytes result);
 
     /** @notice Batch withdrawal request for ETH across revenue paths
@@ -21,7 +26,7 @@ contract RevenueAggregator {
             (bool status, bytes memory result) = address(paths[i]).call(
                 abi.encodeWithSignature("release(address)", targetWallet)
             );
-            
+
             emit WithdrawStatus(paths[i], status, result);
             unchecked{i++;}
         }
@@ -44,10 +49,12 @@ contract RevenueAggregator {
             (bool status, bytes memory result) = address(paths[i]).call(
                 abi.encodeWithSignature("releaseERC20(address,address)", tokenAddress, targetWallet)
             );
-            
+            // so, we allow partial withdrawal? This is nice as you can pass a path
+            // that doesn't have funding currently, but i'd argue that the result should be predictable
+            // and that everything should fail if one fails
             emit WithdrawStatus(paths[i], status, result);
             unchecked{i++;}
-            
+
         }
     }
 }

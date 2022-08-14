@@ -385,11 +385,11 @@ export class ReveelMain extends BaseContract {
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
     "RevenuePathCreated(address)"(
-      path?: null
+      path?: string | null
     ): TypedEventFilter<[string], { path: string }>;
 
     RevenuePathCreated(
-      path?: null
+      path?: string | null
     ): TypedEventFilter<[string], { path: string }>;
 
     "Unpaused(address)"(

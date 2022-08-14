@@ -76,7 +76,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "contract RevenuePath",
         name: "path",
         type: "address",

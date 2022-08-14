@@ -200,7 +200,7 @@ const _abi = [
         type: "address[]",
       },
     ],
-    name: "EthDistrbuted",
+    name: "EthDistributed",
     type: "event",
   },
   {
