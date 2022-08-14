@@ -21,12 +21,14 @@ contract RevenueAggregator {
     function withdrawPathEth(address[] calldata paths, address targetWallet) external {
         uint256 pathLength = paths.length;
 
-        for (uint256 i = 0; i < pathLength; i++) {
+        for (uint256 i = 0; i < pathLength; ) {
             require(paths[i] != address(0), "ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");
             (bool status, bytes memory result) = address(paths[i]).call(
                 abi.encodeWithSignature("release(address)", targetWallet)
             );
+
             emit WithdrawStatus(paths[i], status, result);
+            unchecked{i++;}
         }
     }
 
@@ -35,18 +37,24 @@ contract RevenueAggregator {
      * @param targetWallet The wallet for which the withdrawal is being made
      * @param tokenAddress The ERC20 token for which the request is being made.
      */
-    function withdrawPathErc20(address[] calldata paths, address targetWallet, address tokenAddress) external {
+    function withdrawPathErc20(
+        address[] calldata paths,
+        address targetWallet,
+        address tokenAddress
+    ) external {
         uint256 pathLength = paths.length;
 
-        for (uint256 i = 0; i < pathLength; i++) {
+        for (uint256 i = 0; i < pathLength; ) {
             require(paths[i] != address(0), "ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");
             (bool status, bytes memory result) = address(paths[i]).call(
-                abi.encodeWithSignature("releaseERC20(address,address)",tokenAddress, targetWallet)
+                abi.encodeWithSignature("releaseERC20(address,address)", tokenAddress, targetWallet)
             );
             // so, we allow partial withdrawal? This is nice as you can pass a path
             // that doesn't have funding currently, but i'd argue that the result should be predictable
             // and that everything should fail if one fails
             emit WithdrawStatus(paths[i], status, result);
+            unchecked{i++;}
+
         }
     }
 }

@@ -1,11 +1,8 @@
 {
   "name": "reveel-protocol-v1",
   "description": "Reveel v1 protocol contracts",
-  "version": "0.1.0",
-  "author": {
-    "name": "Tirtha Sarker",
-    "email": "tirtha@r3vl.xyz"
-  },
+  "version": "0.2.0",
+
   "scripts": {
     "clean": "shx rm -rf ./artifacts ./cache ./coverage ./typechain ./coverage.json",
     "commit": "git-cz",
@@ -61,6 +58,7 @@
     "ethers": "^5.4.7",
     "fs-extra": "^10.0.0",
     "hardhat": "^2.10.1",
+    "hardhat-docgen": "^1.3.0",
     "hardhat-gas-reporter": "^1.0.4",
     "husky": "^7.0.2",
     "lint-staged": "^11.2.3",

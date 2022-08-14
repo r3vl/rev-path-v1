@@ -3,12 +3,14 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
-import "hardhat-gas-reporter"
-
-import "./tasks/accounts";
-import "./tasks/deploy";
+import "hardhat-gas-reporter";
+import "hardhat-docgen";
 
 import { resolve } from "path";
+
+import "./tasks/accounts";
+
+
 
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
@@ -37,7 +39,7 @@ if (!infuraApiKey) {
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string = "https://" + network + ".infura.io/v3/" + process.env.INFURA_KEY;
   return {
     accounts: {
       count: 10,
@@ -53,11 +55,15 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   gasReporter: {
     currency: "USD",
-    gasPrice:8,
+    gasPrice: 8,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    enabled: false,
     excludeContracts: [],
     src: "./contracts",
+  },
+  docgen: {
+    path: "./docs",
+    clear: true,
+    runOnCompile: false,
   },
   networks: {
     hardhat: {
@@ -96,7 +102,6 @@ const config: HardhatUserConfig = {
     outDir: "typechain",
     target: "ethers-v5",
   },
-
 };
 
 export default config;

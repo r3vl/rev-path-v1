@@ -32,7 +32,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Updates the platform fee percentage
      * @param newFeePercentage The new fee percentage
      */
-    event UpdatedPlatformFee(uint256 newFeePercentage);
+    event UpdatedPlatformFee(uint88 newFeePercentage);
 
     /** @notice Updates the platform fee collecting wallet
      * @param newWallet The new fee collecting wallet
@@ -54,7 +54,7 @@ contract ReveelMain is Ownable, Pausable {
 
     constructor(
         address _libraryAddress,
-        uint256 _platformFee,
+        uint88 _platformFee,
         address _platformWallet
     ) {
         if (_libraryAddress == address(0) || _platformWallet == address(0)) {
@@ -81,7 +81,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Set the platform fee percentage
      * @param newFeePercentage The new fee percentage
      */
-    function setPlatformFee(uint256 newFeePercentage) external onlyOwner {
+    function setPlatformFee(uint88 newFeePercentage) external onlyOwner {
         platformFee = newFeePercentage;
         emit UpdatedPlatformFee(platformFee);
     }
@@ -152,7 +152,7 @@ contract ReveelMain is Ownable, Pausable {
 
     /** @notice Gets the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint256) {
+    function getPlatformFee() external view returns (uint88) {
         return platformFee;
     }
 

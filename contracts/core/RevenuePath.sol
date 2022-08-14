@@ -24,7 +24,7 @@ contract RevenuePath is Ownable, Initializable {
     bool private isImmutable;
 
     //@notice Fee percentage that will be applicable for additional tiers
-    uint256 private platformFee;
+    uint88 private platformFee;
 
     //@notice Current ongoing tier for eth distribution, in case multiple tiers are added
     uint256 private currentTier;
@@ -59,7 +59,8 @@ contract RevenuePath is Ownable, Initializable {
     // does this allow for different proportions for different tokens?
     mapping(address => uint256) private erc20RevenueShare;
 
-    // @notice For a given token & wallet address, the amount of the token that has been released. erc20Released[token][wallet]
+    /**  @notice For a given token & wallet address, the amount of the token that has been released
+    . erc20Released[token][wallet]*/
     mapping(address => mapping(address => uint256)) private erc20Released;
 
     // @notice Total ERC20 released from the revenue path for a given token address
@@ -71,10 +72,10 @@ contract RevenuePath is Ownable, Initializable {
     }
 
     struct PathInfo {
-        string name;
-        uint256 platformFee;
+        uint88 platformFee;
         address platformWallet;
         bool isImmutable;
+        string name;
     }
 
     Revenue[] revenueTiers;
@@ -230,7 +231,7 @@ contract RevenuePath is Ownable, Initializable {
         uint256 listLength = _walletList.length;
         uint256 i;
         uint256 j;
-        for (i = 0; i < listLength; i++) {
+        for (i = 0; i < listLength;) {
             Revenue memory tier;
 
             uint256 walletMembers = _walletList[i].length;
@@ -239,20 +240,30 @@ contract RevenuePath is Ownable, Initializable {
                 tier.limitAmount = _tierLimit[i];
             }
             uint256 totalShare;
-            for (j = 0; j < walletMembers; j++) {
+            for (j = 0; j < walletMembers; ) {
                 // what do the parenthesis around _distribution[i] do?
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShare += (_distribution[i])[j];
+                unchecked {
+                    j++;
+                }
             }
             if (totalShare != BASE) {
                 revert TotalShareNotHundred();
             }
             revenueTiers.push(tier);
+
+            unchecked {
+                i++;
+            }
         }
 
         uint256 erc20WalletMembers = _walletList[listLength - 1].length;
-        for (uint256 k = 0; k < erc20WalletMembers; k++) {
+        for (uint256 k = 0; k < erc20WalletMembers; ) {
             erc20RevenueShare[(_walletList[listLength - 1])[k]] = (_distribution[listLength - 1])[k];
+            unchecked {
+                k++;
+            }
         }
 
         if (revenueTiers.length > 1) {
@@ -285,8 +296,8 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 nextRevenueTier = revenueTiers.length;
-        for (uint256 i = 0; i < listLength; i++) {
-            if (previousTierLimit[i] <= totalDistributed[nextRevenueTier - 1]) {
+        for (uint256 i = 0; i < listLength; ) {
+            if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
                 revert LimitNotGreaterThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
                     proposedNewLimit: previousTierLimit[i]
@@ -315,6 +326,10 @@ contract RevenuePath is Ownable, Initializable {
             }
             revenueTiers.push(tier);
             nextRevenueTier += 1;
+
+            unchecked {
+                i++;
+            }
         }
         if (!feeRequired) {
             feeRequired = true;
@@ -335,8 +350,15 @@ contract RevenuePath is Ownable, Initializable {
         uint256 newLimit,
         uint256 tierNumber
     ) external isAllowed onlyOwner {
-        if (tierNumber <= currentTier || tierNumber > (revenueTiers.length - 1)) {
+        if (tierNumber < currentTier || tierNumber > (revenueTiers.length - 1)) {
             revert IneligibileTierUpdate({ currentTier: currentTier, requestedTier: tierNumber });
+        }
+
+        if (newLimit < totalDistributed[tierNumber]) {
+            revert LimitNotGreaterThanTotalDistributed({
+                alreadyDistributed: totalDistributed[tierNumber],
+                proposedNewLimit: newLimit
+            });
         }
 
         if (_walletList.length != _distribution.length) {
@@ -350,9 +372,12 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 totalShares;
-        for (uint256 i = 0; i < listLength; i++) {
+        for (uint256 i = 0; i < listLength;) {
             revenueProportion[tierNumber][_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
+            unchecked {
+                 i++;
+            }
         }
 
         if (totalShares != BASE) {
@@ -380,9 +405,12 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 totalShares;
-        for (uint256 i = 0; i < listLength; i++) {
+        for (uint256 i = 0; i < listLength; ) {
             erc20RevenueShare[_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
+            unchecked {
+                i++;
+            }
         }
 
         if (totalShares != BASE) {
@@ -528,28 +556,27 @@ contract RevenuePath is Ownable, Initializable {
         return totalReleased;
     }
 
-    /** @notice Get the revenue path name
+    /** @notice Get the revenue path name.
      */
-    function getRevenuePathName() external view returns (string memory){
+    function getRevenuePathName() external view returns (string memory) {
         return name;
     }
 
-
     /** @notice Get the amount of total eth withdrawn by the account
      */
-    function getEthWithdrawn(address account) external view returns (uint256){
+    function getEthWithdrawn(address account) external view returns (uint256) {
         return released[account];
     }
 
     /** @notice Get the erc20 revenue share percentage for given account
      */
-    function getErc20WalletShare(address account) external view returns (uint256){
+    function getErc20WalletShare(address account) external view returns (uint256) {
         return erc20RevenueShare[account];
     }
 
     /** @notice Get the total erc2o released from the revenue path.
      */
-    function getTotalErc20Released(address token) external view returns (uint256){
+    function getTotalErc20Released(address token) external view returns (uint256) {
         return totalERC20Released[token];
     }
 
@@ -596,9 +623,12 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 totalMembers = revenueTiers[presentTier].walletList.length;
 
-        for (uint256 i = 0; i < totalMembers; i++) {
+        for (uint256 i = 0; i < totalMembers; ) {
             address wallet = revenueTiers[presentTier].walletList[i];
             ethRevenuePending[wallet] += ((currentTierDistribution * revenueProportion[presentTier][wallet]) / BASE);
+            unchecked {
+                i++;
+            }
         }
 
         totalDistributed[presentTier] += totalDistributionAmount;
