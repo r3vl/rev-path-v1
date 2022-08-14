@@ -78,6 +78,7 @@ contract RevenuePath is Ownable, Initializable {
         string name;
     }
 
+    // should this not be public or private?
     Revenue[] revenueTiers;
 
     /********************************
