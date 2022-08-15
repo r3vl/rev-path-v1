@@ -9,7 +9,7 @@ import "./RevenuePath.sol";
 contract ReveelMain is Ownable, Pausable {
     //@notice Fee percentage that will be applicable for additional tiers
     uint88 private platformFee;
-    //@notice Addres of platform wallet to collect fees
+    //@notice Address of platform wallet to collect fees
     address private platformWallet;
     //@notice The list of revenue path contracts
     RevenuePath[] private revenuePaths;
@@ -22,7 +22,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Emits when a new revenue path is created
      * @param path The address of the new revenue path
      */
-    event RevenuePathCreated(RevenuePath path);
+    event RevenuePathCreated(RevenuePath indexed path, string indexed name);
     /** @notice Updates the libaray contract address
      * @param newLibrary The address of the library contract
      */
@@ -118,7 +118,7 @@ contract ReveelMain is Ownable, Pausable {
         pathInfo.isImmutable = isImmutable;
 
         path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
-        emit RevenuePathCreated(path);
+        emit RevenuePathCreated(path,_name);
     }
 
     /**

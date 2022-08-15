@@ -260,8 +260,8 @@ interface RevenuePathInterface extends ethers.utils.Interface {
 
   events: {
     "ERC20PaymentReleased(address,address,uint256)": EventFragment;
-    "ERC20RevneuUpdated(address[],uint256[])": EventFragment;
-    "EthDistrbuted(uint256,uint256,address[])": EventFragment;
+    "ERC20RevenueUpdated(address[],uint256[])": EventFragment;
+    "EthDistributed(uint256,uint256,address[])": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "PaymentReleased(address,uint256)": EventFragment;
     "RevenueTiersAdded(address[][],uint256[][],uint256)": EventFragment;
@@ -269,8 +269,8 @@ interface RevenuePathInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "ERC20PaymentReleased"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20RevneuUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "EthDistrbuted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ERC20RevenueUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EthDistributed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PaymentReleased"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RevenueTiersAdded"): EventFragment;
@@ -285,14 +285,14 @@ export type ERC20PaymentReleasedEvent = TypedEvent<
   }
 >;
 
-export type ERC20RevneuUpdatedEvent = TypedEvent<
+export type ERC20RevenueUpdatedEvent = TypedEvent<
   [string[], BigNumber[]] & {
     updatedWalletLists: string[];
     updatedDistributionLists: BigNumber[];
   }
 >;
 
-export type EthDistrbutedEvent = TypedEvent<
+export type EthDistributedEvent = TypedEvent<
   [BigNumber, BigNumber, string[]] & {
     amount: BigNumber;
     distributionTier: BigNumber;
@@ -757,7 +757,7 @@ export class RevenuePath extends BaseContract {
       { token: string; account: string; payment: BigNumber }
     >;
 
-    "ERC20RevneuUpdated(address[],uint256[])"(
+    "ERC20RevenueUpdated(address[],uint256[])"(
       updatedWalletLists?: null,
       updatedDistributionLists?: null
     ): TypedEventFilter<
@@ -765,7 +765,7 @@ export class RevenuePath extends BaseContract {
       { updatedWalletLists: string[]; updatedDistributionLists: BigNumber[] }
     >;
 
-    ERC20RevneuUpdated(
+    ERC20RevenueUpdated(
       updatedWalletLists?: null,
       updatedDistributionLists?: null
     ): TypedEventFilter<
@@ -773,7 +773,7 @@ export class RevenuePath extends BaseContract {
       { updatedWalletLists: string[]; updatedDistributionLists: BigNumber[] }
     >;
 
-    "EthDistrbuted(uint256,uint256,address[])"(
+    "EthDistributed(uint256,uint256,address[])"(
       amount?: BigNumberish | null,
       distributionTier?: BigNumberish | null,
       walletList?: null
@@ -782,7 +782,7 @@ export class RevenuePath extends BaseContract {
       { amount: BigNumber; distributionTier: BigNumber; walletList: string[] }
     >;
 
-    EthDistrbuted(
+    EthDistributed(
       amount?: BigNumberish | null,
       distributionTier?: BigNumberish | null,
       walletList?: null

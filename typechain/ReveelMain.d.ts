@@ -127,7 +127,7 @@ interface ReveelMainInterface extends ethers.utils.Interface {
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
-    "RevenuePathCreated(address)": EventFragment;
+    "RevenuePathCreated(address,string)": EventFragment;
     "Unpaused(address)": EventFragment;
     "UpdatedLibraryAddress(address)": EventFragment;
     "UpdatedPlatformFee(uint88)": EventFragment;
@@ -149,7 +149,9 @@ export type OwnershipTransferredEvent = TypedEvent<
 
 export type PausedEvent = TypedEvent<[string] & { account: string }>;
 
-export type RevenuePathCreatedEvent = TypedEvent<[string] & { path: string }>;
+export type RevenuePathCreatedEvent = TypedEvent<
+  [string, string] & { path: string; name: string }
+>;
 
 export type UnpausedEvent = TypedEvent<[string] & { account: string }>;
 
@@ -384,13 +386,15 @@ export class ReveelMain extends BaseContract {
 
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    "RevenuePathCreated(address)"(
-      path?: null
-    ): TypedEventFilter<[string], { path: string }>;
+    "RevenuePathCreated(address,string)"(
+      path?: string | null,
+      name?: string | null
+    ): TypedEventFilter<[string, string], { path: string; name: string }>;
 
     RevenuePathCreated(
-      path?: null
-    ): TypedEventFilter<[string], { path: string }>;
+      path?: string | null,
+      name?: string | null
+    ): TypedEventFilter<[string, string], { path: string; name: string }>;
 
     "Unpaused(address)"(
       account?: null

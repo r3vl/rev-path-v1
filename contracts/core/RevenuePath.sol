@@ -75,7 +75,7 @@ contract RevenuePath is Ownable, Initializable {
         string name;
     }
 
-    Revenue[] revenueTiers;
+    Revenue[] private revenueTiers;
 
     /********************************
      *           EVENTS              *
@@ -86,7 +86,7 @@ contract RevenuePath is Ownable, Initializable {
      * @param distributionTier the tier index at which the distribution is being done.
      * @param walletList the list of wallet addresses for which ETH has been distributed
      */
-    event EthDistrbuted(uint256 indexed amount, uint256 indexed distributionTier, address[] walletList);
+    event EthDistributed(uint256 indexed amount, uint256 indexed distributionTier, address[] walletList);
 
     /** @notice Emits when ETH payment is withdrawn/claimed by a member
      * @param account The wallet for which ETH has been claimed for
@@ -114,7 +114,7 @@ contract RevenuePath is Ownable, Initializable {
         uint256 indexed newLimit
     );
 
-    event ERC20RevneuUpdated(address[] updatedWalletLists, uint256[] updatedDistributionLists);
+    event ERC20RevenueUpdated(address[] updatedWalletLists, uint256[] updatedDistributionLists);
 
     /********************************
      *           MODIFIERS          *
@@ -139,7 +139,7 @@ contract RevenuePath is Ownable, Initializable {
      */
     error WalletAndDistributionCountMismatch(uint256 walletCount, uint256 distributionCount);
 
-    /** @dev Reverts when passed wallet list and tier limit count doesn't add up. 
+    /** @dev Reverts when passed wallet list and tier limit count doesn't add up.
        The tier limit count should be 1 less than wallet list
      * @param walletCount  Length of wallet list
      * @param tierLimitCount Length of tier limit list
@@ -370,7 +370,7 @@ contract RevenuePath is Ownable, Initializable {
             revenueProportion[tierNumber][_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
             unchecked {
-                 i++;
+                i++;
             }
         }
 
@@ -411,7 +411,7 @@ contract RevenuePath is Ownable, Initializable {
             revert TotalShareNotHundred();
         }
 
-        emit ERC20RevneuUpdated(_walletList, _distribution);
+        emit ERC20RevenueUpdated(_walletList, _distribution);
     }
 
     /** @notice Releases distributed ETH for the provided address
@@ -623,7 +623,7 @@ contract RevenuePath is Ownable, Initializable {
 
         totalDistributed[presentTier] += totalDistributionAmount;
 
-        emit EthDistrbuted(currentTierDistribution, presentTier, revenueTiers[presentTier].walletList);
+        emit EthDistributed(currentTierDistribution, presentTier, revenueTiers[presentTier].walletList);
 
         if (nextTierDistribution > 0) {
             currentTier += 1;
