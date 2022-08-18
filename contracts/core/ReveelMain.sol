@@ -45,7 +45,7 @@ contract ReveelMain is Ownable, Pausable {
      */
 
     /********************************
-     *           EVENTS              *
+     *           ERRORS              *
      ********************************/
     /** @dev Reverts when zero address is assigned
      */
@@ -63,6 +63,32 @@ contract ReveelMain is Ownable, Pausable {
         libraryAddress = _libraryAddress;
         platformFee = _platformFee;
         platformWallet = _platformWallet;
+    }
+
+    /** @notice Create a new revenue path
+     * @param _walletList A nested array of member wallet list
+     * @param _distribution A nested array of distribution percentages
+     * @param tierLimit A sequential list of tier limit
+     * @param isImmutable Set this flag to true if immutable
+     */
+    function createRevenuePath(
+        address[][] memory _walletList,
+        uint256[][] memory _distribution,
+        uint256[] memory tierLimit,
+        string memory _name,
+        bool isImmutable
+    ) external whenNotPaused {
+        RevenuePath path = RevenuePath(payable(Clones.clone(libraryAddress)));
+        revenuePaths.push(path);
+
+        RevenuePath.PathInfo memory pathInfo;
+        pathInfo.name = _name;
+        pathInfo.platformFee = platformFee;
+        pathInfo.platformWallet = platformWallet;
+        pathInfo.isImmutable = isImmutable;
+
+        path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
+        emit RevenuePathCreated(path,_name);
     }
 
     /** @notice Sets the libaray contract address
@@ -95,31 +121,6 @@ contract ReveelMain is Ownable, Pausable {
         emit UpdatedPlatformWallet(platformWallet);
     }
 
-    /** @notice Create a new revenue path
-     * @param _walletList A nested array of member wallet list
-     * @param _distribution A nested array of distribution percentages
-     * @param tierLimit A sequential list of tier limit
-     * @param isImmutable Set this flag to true if immutable
-     */
-    function createRevenuePath(
-        address[][] memory _walletList,
-        uint256[][] memory _distribution,
-        uint256[] memory tierLimit,
-        string memory _name,
-        bool isImmutable
-    ) external whenNotPaused {
-        RevenuePath path = RevenuePath(payable(Clones.clone(libraryAddress)));
-        revenuePaths.push(path);
-
-        RevenuePath.PathInfo memory pathInfo;
-        pathInfo.name = _name;
-        pathInfo.platformFee = platformFee;
-        pathInfo.platformWallet = platformWallet;
-        pathInfo.isImmutable = isImmutable;
-
-        path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
-        emit RevenuePathCreated(path,_name);
-    }
 
     /**
      * @notice Owner can toggle & pause contract

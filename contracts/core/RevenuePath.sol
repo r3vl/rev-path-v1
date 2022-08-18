@@ -225,9 +225,8 @@ contract RevenuePath is Ownable, Initializable {
         }
 
         uint256 listLength = _walletList.length;
-        uint256 i;
-        uint256 j;
-        for (i = 0; i < listLength;) {
+ 
+        for (uint256 i ; i < listLength; ) {
             Revenue memory tier;
 
             uint256 walletMembers = _walletList[i].length;
@@ -236,7 +235,7 @@ contract RevenuePath is Ownable, Initializable {
                 tier.limitAmount = _tierLimit[i];
             }
             uint256 totalShare;
-            for (j = 0; j < walletMembers; ) {
+            for (uint256 j; j < walletMembers; ) {
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShare += (_distribution[i])[j];
                 unchecked {
@@ -254,7 +253,7 @@ contract RevenuePath is Ownable, Initializable {
         }
 
         uint256 erc20WalletMembers = _walletList[listLength - 1].length;
-        for (uint256 k = 0; k < erc20WalletMembers; ) {
+        for (uint256 k; k < erc20WalletMembers; ) {
             erc20RevenueShare[(_walletList[listLength - 1])[k]] = (_distribution[listLength - 1])[k];
             unchecked {
                 k++;
@@ -290,7 +289,7 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 nextRevenueTier = revenueTiers.length;
-        for (uint256 i = 0; i < listLength; ) {
+        for (uint256 i; i < listLength; ) {
             if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
                 revert LimitNotGreaterThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
@@ -310,9 +309,12 @@ contract RevenuePath is Ownable, Initializable {
             revenueTiers[nextRevenueTier - 1].limitAmount = previousTierLimit[i];
             tier.walletList = _walletList[i];
             uint256 totalShares;
-            for (uint256 j = 0; j < walletMembers; j++) {
+            for (uint256 j; j < walletMembers; ) {
                 revenueProportion[nextRevenueTier][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShares += (_distribution[i])[j];
+                unchecked {
+                    j++;
+                }
             }
 
             if (totalShares != BASE) {
@@ -366,7 +368,7 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 totalShares;
-        for (uint256 i = 0; i < listLength;) {
+        for (uint256 i; i < listLength; ) {
             revenueProportion[tierNumber][_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
             unchecked {
@@ -399,7 +401,7 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 listLength = _walletList.length;
         uint256 totalShares;
-        for (uint256 i = 0; i < listLength; ) {
+        for (uint256 i; i < listLength; ) {
             erc20RevenueShare[_walletList[i]] = _distribution[i];
             totalShares += _distribution[i];
             unchecked {
@@ -422,17 +424,17 @@ contract RevenuePath is Ownable, Initializable {
             revert InsufficientWithdrawalBalance();
         }
 
+        uint256 payment = ethRevenuePending[account];
+        released[account] += payment;
+        totalReleased += payment;
+        ethRevenuePending[account] = 0;
+
         if (feeAccumulated > 0) {
             uint256 value = feeAccumulated;
             feeAccumulated = 0;
             totalReleased += value;
             sendValue(payable(platformFeeWallet), value);
         }
-
-        uint256 payment = ethRevenuePending[account];
-        released[account] += payment;
-        totalReleased += payment;
-        ethRevenuePending[account] = 0;
 
         sendValue(account, payment);
         emit PaymentReleased(account, payment);
@@ -586,7 +588,7 @@ contract RevenuePath is Ownable, Initializable {
         require(success, "ETH_TRANSFER_FAILED");
     }
 
-    /** @notice Distributes ETH based on the required conditions of the tier sequences
+    /** @notice Distributes received ETH based on the required conditions of the tier sequences
      * @param amount The amount of ETH to be distributed
      * @param presentTier The current tier for which distribution will take place.
      */
@@ -613,7 +615,7 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 totalMembers = revenueTiers[presentTier].walletList.length;
 
-        for (uint256 i = 0; i < totalMembers; ) {
+        for (uint256 i; i < totalMembers; ) {
             address wallet = revenueTiers[presentTier].walletList[i];
             ethRevenuePending[wallet] += ((currentTierDistribution * revenueProportion[presentTier][wallet]) / BASE);
             unchecked {
