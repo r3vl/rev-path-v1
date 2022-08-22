@@ -22,7 +22,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Emits when a new revenue path is created
      * @param path The address of the new revenue path
      */
-    event RevenuePathCreated(RevenuePath indexed path, string indexed name);
+    event RevenuePathCreated(RevenuePath indexed path, string name);
     /** @notice Updates the libaray contract address
      * @param newLibrary The address of the library contract
      */
