@@ -10,8 +10,6 @@ import { resolve } from "path";
 
 import "./tasks/accounts";
 
-
-
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
@@ -29,8 +27,9 @@ const chainIds = {
 
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file");
+const privateKey: string | undefined = process.env.PRIVATE_KEY
+if (!mnemonic && !privateKey) {
+  throw new Error("Please set your MNEMONIC or PrivateKey in a .env file");
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
@@ -39,13 +38,19 @@ if (!infuraApiKey) {
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + process.env.INFURA_KEY;
-  return {
-    accounts: {
+  const url: string = "https://" + network + ".infura.io/v3/" + process.env.INFURA_API_KEY;
+  let accounts;
+  if (mnemonic) {
+    accounts = {
       count: 10,
       mnemonic,
       path: "m/44'/60'/0'/0",
-    },
+    }
+  } else {
+    accounts = [`${privateKey}`];
+  }
+  return {
+    accounts,
     chainId: chainIds[network],
     url,
   };
@@ -68,7 +73,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       accounts: {
-        mnemonic,
+        mnemonic: mnemonic || "test test test test test test test test test test test junk",
       },
       chainId: chainIds.hardhat,
     },
