@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const libraryAddress = "0x3b612700A50a62C9807B0a5a451E0b248c853897";
+  const libraryAddress = "0x7Ff51f4018DedB5632c2d5b103cA81BcA08bD0af";
   const feePercentage = 100; //1%
   const platformWallet = "0xcAa029e5ba2b233ce50467cf01Fc727b45925A23";
 
