@@ -388,12 +388,12 @@ export class ReveelMain extends BaseContract {
 
     "RevenuePathCreated(address,string)"(
       path?: string | null,
-      name?: string | null
+      name?: null
     ): TypedEventFilter<[string, string], { path: string; name: string }>;
 
     RevenuePathCreated(
       path?: string | null,
-      name?: string | null
+      name?: null
     ): TypedEventFilter<[string, string], { path: string; name: string }>;
 
     "Unpaused(address)"(

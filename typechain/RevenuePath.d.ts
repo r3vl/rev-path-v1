@@ -22,6 +22,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface RevenuePathInterface extends ethers.utils.Interface {
   functions: {
     "BASE()": FunctionFragment;
+    "VERSION()": FunctionFragment;
     "addRevenueTier(address[][],uint256[][],uint256[])": FunctionFragment;
     "getCurrentTier()": FunctionFragment;
     "getERC20Released(address,address)": FunctionFragment;
@@ -51,6 +52,7 @@ interface RevenuePathInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(functionFragment: "BASE", values?: undefined): string;
+  encodeFunctionData(functionFragment: "VERSION", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addRevenueTier",
     values: [string[][], BigNumberish[][], BigNumberish[]]
@@ -162,6 +164,7 @@ interface RevenuePathInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "BASE", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "VERSION", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addRevenueTier",
     data: BytesLike
@@ -371,6 +374,8 @@ export class RevenuePath extends BaseContract {
   functions: {
     BASE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    VERSION(overrides?: CallOverrides): Promise<[number]>;
+
     addRevenueTier(
       _walletList: string[][],
       _distribution: BigNumberish[][],
@@ -501,6 +506,8 @@ export class RevenuePath extends BaseContract {
 
   BASE(overrides?: CallOverrides): Promise<BigNumber>;
 
+  VERSION(overrides?: CallOverrides): Promise<number>;
+
   addRevenueTier(
     _walletList: string[][],
     _distribution: BigNumberish[][],
@@ -622,6 +629,8 @@ export class RevenuePath extends BaseContract {
 
   callStatic: {
     BASE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    VERSION(overrides?: CallOverrides): Promise<number>;
 
     addRevenueTier(
       _walletList: string[][],
@@ -883,6 +892,8 @@ export class RevenuePath extends BaseContract {
   estimateGas: {
     BASE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+
     addRevenueTier(
       _walletList: string[][],
       _distribution: BigNumberish[][],
@@ -1003,6 +1014,8 @@ export class RevenuePath extends BaseContract {
 
   populateTransaction: {
     BASE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    VERSION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     addRevenueTier(
       _walletList: string[][],

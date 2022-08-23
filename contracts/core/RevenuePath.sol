@@ -12,6 +12,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
 contract RevenuePath is Ownable, Initializable {
     uint256 public constant BASE = 1e4;
+    uint8 public constant VERSION = 1;
 
     //@notice Addres of platform wallet to collect fees
     address private platformFeeWallet;
