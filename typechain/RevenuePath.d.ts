@@ -265,6 +265,7 @@ interface RevenuePathInterface extends ethers.utils.Interface {
     "ERC20PaymentReleased(address,address,uint256)": EventFragment;
     "ERC20RevenueUpdated(address[],uint256[])": EventFragment;
     "EthDistributed(uint256,uint256,address[])": EventFragment;
+    "Initialized(uint8)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "PaymentReleased(address,uint256)": EventFragment;
     "RevenueTiersAdded(address[][],uint256[][],uint256)": EventFragment;
@@ -274,6 +275,7 @@ interface RevenuePathInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ERC20PaymentReleased"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ERC20RevenueUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EthDistributed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PaymentReleased"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RevenueTiersAdded"): EventFragment;
@@ -302,6 +304,8 @@ export type EthDistributedEvent = TypedEvent<
     walletList: string[];
   }
 >;
+
+export type InitializedEvent = TypedEvent<[number] & { version: number }>;
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string] & { previousOwner: string; newOwner: string }
@@ -799,6 +803,14 @@ export class RevenuePath extends BaseContract {
       [BigNumber, BigNumber, string[]],
       { amount: BigNumber; distributionTier: BigNumber; walletList: string[] }
     >;
+
+    "Initialized(uint8)"(
+      version?: null
+    ): TypedEventFilter<[number], { version: number }>;
+
+    Initialized(
+      version?: null
+    ): TypedEventFilter<[number], { version: number }>;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
