@@ -35,7 +35,7 @@ async function pathInitializerFixture() {
   const tierTwoFeeDistribution = [3300, 3300, 3400];
   const tierTwoLimit = ethers.utils.parseEther("1.2");
 
-  const tierThreeAddressList = [tirtha.address, bob.address];
+  const tierThreeAddressList = [kim.address, bob.address];
   const tierThreeFeeDistribution = [5000, 5000];
 
   const tiers = [tierOneAddressList, tierTwoAddressList, tierThreeAddressList];
@@ -274,11 +274,32 @@ context("RevenuePath: Update paths", function () {
   });
 
   it("Update ERC20 revenue tier ", async () => {
+    const tirthaShareBeforeUpdate = await revenuePath.getErc20WalletShare(tirtha.address);
+    expect(tirthaShareBeforeUpdate).to.be.equal(0);
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
     let distributionList = [2000, 2000, 3000, 3000];
 
     const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
     await updateTx.wait();
+    const tirthaShareAfterUpdate = await revenuePath.getErc20WalletShare(tirtha.address);
+    expect(tirthaShareAfterUpdate).to.be.greaterThan(tirthaShareBeforeUpdate);
+    
+  });
+
+  it("Wallet not share holder after ERC20 distribution update", async () => {
+    const kimSharesBeforeUpdate = await revenuePath.getErc20WalletShare(kim.address);
+    expect(kimSharesBeforeUpdate).to.be.greaterThan(0);
+
+    let tier = [alex.address, bob.address, tracy.address, tirtha.address];
+    let distributionList = [2000, 2000, 3000, 3000];
+
+    const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
+    await updateTx.wait();
+
+    kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
+    expect(kimSharesAfterUpdate).to.be.equal(0);
+
+    
   });
   it("Reverts for tier number lesser than current tier during tier updates ", async () => {
     const tx = await alex.sendTransaction({
@@ -574,7 +595,7 @@ context("RevenuePath: ERC20 Distribution", function () {
   });
 
   it("Reverts ERC20 release if there is no revenueShare ", async () => {
-    await expect(revenuePath.releaseERC20(simpleToken.address, kim.address)).to.revertedWithCustomError(
+    await expect(revenuePath.releaseERC20(simpleToken.address, alex.address)).to.revertedWithCustomError(
       RevenuePath,
       "ZeroERC20Shares",
     );

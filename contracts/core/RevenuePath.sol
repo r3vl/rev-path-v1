@@ -64,6 +64,8 @@ contract RevenuePath is Ownable, Initializable {
     // @notice Total ERC20 released from the revenue path for a given token address
     mapping(address => uint256) private totalERC20Released;
 
+    address[] private erc20DistributionWallets;
+
     struct Revenue {
         uint256 limitAmount;
         address[] walletList;
@@ -226,8 +228,8 @@ contract RevenuePath is Ownable, Initializable {
         }
 
         uint256 listLength = _walletList.length;
- 
-        for (uint256 i ; i < listLength; ) {
+
+        for (uint256 i; i < listLength; ) {
             Revenue memory tier;
 
             uint256 walletMembers = _walletList[i].length;
@@ -255,7 +257,10 @@ contract RevenuePath is Ownable, Initializable {
 
         uint256 erc20WalletMembers = _walletList[listLength - 1].length;
         for (uint256 k; k < erc20WalletMembers; ) {
-            erc20RevenueShare[(_walletList[listLength - 1])[k]] = (_distribution[listLength - 1])[k];
+            address userWallet = (_walletList[listLength - 1])[k];
+            erc20RevenueShare[userWallet] = (_distribution[listLength - 1])[k];
+            erc20DistributionWallets.push(userWallet);
+
             unchecked {
                 k++;
             }
@@ -387,6 +392,7 @@ contract RevenuePath is Ownable, Initializable {
     /** @notice Update ERC20 revenue distribution. Only for mutable revenue path
      * @param _walletList A list of member wallets
      * @param _distribution A list of distribution percentages
+     * //#TODO:QSP1 - find a way to identify prev address and initialize them to 0
      */
     function updateErc20Distrbution(address[] calldata _walletList, uint256[] calldata _distribution)
         external
@@ -401,12 +407,24 @@ contract RevenuePath is Ownable, Initializable {
         }
 
         uint256 listLength = _walletList.length;
+        uint256 previousWalletListLength = erc20DistributionWallets.length;
         uint256 totalShares;
-        for (uint256 i; i < listLength; ) {
-            erc20RevenueShare[_walletList[i]] = _distribution[i];
-            totalShares += _distribution[i];
+
+        for (uint256 i; i < previousWalletListLength; ) {
+            erc20RevenueShare[erc20DistributionWallets[i]] = 0;
             unchecked {
                 i++;
+            }
+        }
+
+        delete erc20DistributionWallets;
+
+        for (uint256 j; j < listLength; ) {
+            erc20RevenueShare[_walletList[j]] += _distribution[j];
+            erc20DistributionWallets.push(_walletList[j]);
+            totalShares += _distribution[j];
+            unchecked {
+                j++;
             }
         }
 
