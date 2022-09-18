@@ -594,17 +594,10 @@ context("RevenuePath: ERC20 Distribution", function () {
     );
   });
 
-  it("Reverts ERC20 release if there is no revenueShare ", async () => {
-    await expect(revenuePath.releaseERC20(simpleToken.address, alex.address)).to.revertedWithCustomError(
-      RevenuePath,
-      "ZeroERC20Shares",
-    );
-  });
-
-  it("Reverts ERC20 release if there is no revenueShare ", async () => {
+  it("Reverts ERC20 release if there is no revenue ", async () => {
     const tx = await simpleToken.transfer(revenuePath.address, ethers.utils.parseEther("1000"));
     await tx.wait();
-
+    
     const releaseFund = await revenuePath.releaseERC20(simpleToken.address, bob.address);
     await releaseFund.wait();
 
@@ -613,6 +606,31 @@ context("RevenuePath: ERC20 Distribution", function () {
       "NoDueERC20Payment",
     );
   });
+
+  it("Wallet can't double claim after ERC20 list update ", async () => {
+    const tx = await simpleToken.transfer(revenuePath.address, ethers.utils.parseEther("1000"));
+    await tx.wait();
+    
+    const releaseFund = await revenuePath.releaseERC20(simpleToken.address, bob.address);
+    await releaseFund.wait();
+
+    const tier = [alex.address, bob.address, tracy.address, tirtha.address];
+    const distributionList = [2000, 2000, 3000, 3000];
+
+    const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
+    await updateTx.wait();
+    
+    // Previously accounted token withdrawal
+    await revenuePath.releaseERC20(simpleToken.address, kim.address);
+    await releaseFund.wait();
+
+
+    await expect(revenuePath.releaseERC20(simpleToken.address, bob.address)).to.revertedWithCustomError(
+      RevenuePath,
+      "NoDueERC20Payment",
+    );
+  });
+
 });
 
 context("RevenuePath: Miscellenious", function () {

@@ -64,6 +64,14 @@ contract RevenuePath is Ownable, Initializable {
     // @notice Total ERC20 released from the revenue path for a given token address
     mapping(address => uint256) private totalERC20Released;
 
+    /**  @notice For a given token & wallet address, the amount of the token that can been withdrawn by the wallet
+    . erc20Withdrawable[token][wallet]*/
+    mapping(address => mapping(address => uint256)) public erc20Withdrawable;
+
+    // @notice Total ERC20 accounted for the revenue path for a given token address
+    mapping(address => uint256) private totalERC20Accounted;
+
+    // array of address having erc20 distribution shares
     address[] private erc20DistributionWallets;
 
     struct Revenue {
@@ -104,12 +112,23 @@ contract RevenuePath is Ownable, Initializable {
      */
     event ERC20PaymentReleased(address indexed token, address indexed account, uint256 indexed payment);
 
+    /** @notice Emits when new revenue tier is added
+     * @param addedWalletLists The nested wallet list of different tiers
+     * @param addedDistributionLists The corresponding shares of all tiers
+     * @param newTiersCount The total number of new tiers added
+     */
     event RevenueTiersAdded(
         address[][] addedWalletLists,
         uint256[][] addedDistributionLists,
         uint256 indexed newTiersCount
     );
 
+    /** @notice Emits when revenue tiers are updated
+     * @param updatedWalletList The wallet list of different tiers
+     * @param updatedDistributionLists The corresponding shares of all tiers
+     * @param updatedTierNumber The number of the updated tier
+     * @param newLimit The limit of the updated tier
+     */
     event RevenueTiersUpdated(
         address[] updatedWalletList,
         uint256[] updatedDistributionLists,
@@ -117,7 +136,17 @@ contract RevenuePath is Ownable, Initializable {
         uint256 indexed newLimit
     );
 
-    event ERC20RevenueUpdated(address[] updatedWalletLists, uint256[] updatedDistributionLists);
+        /** @notice Emits when erc20 revenue list is are updated
+     * @param updatedWalletList The wallet list of different tiers
+     * @param updatedDistributionList The corresponding shares of all tiers
+     */
+    event ERC20RevenueUpdated(address[] updatedWalletList, uint256[] updatedDistributionList);
+
+     /** @notice Emits when erc20 revenue accounting is done
+     * @param token The token for which accounting has been done
+     * @param amount The amount of token that has been accounted for
+     */
+    event ERC20Distributed(address indexed token, uint256 indexed amount);
 
     /********************************
      *           MODIFIERS          *
@@ -392,7 +421,6 @@ contract RevenuePath is Ownable, Initializable {
     /** @notice Update ERC20 revenue distribution. Only for mutable revenue path
      * @param _walletList A list of member wallets
      * @param _distribution A list of distribution percentages
-     * //#TODO:QSP1 - find a way to identify prev address and initialize them to 0
      */
     function updateErc20Distrbution(address[] calldata _walletList, uint256[] calldata _distribution)
         external
@@ -464,18 +492,15 @@ contract RevenuePath is Ownable, Initializable {
      * @param account The member's wallet address
      */
     function releaseERC20(address token, address account) external {
-        if (erc20RevenueShare[account] == 0) {
-            revert ZeroERC20Shares({ wallet: account });
-        }
+        erc20Accounting(token);
+        uint256 payment = erc20Withdrawable[token][account];
 
-        uint256 totalReceived = IERC20(token).balanceOf(address(this)) + totalERC20Released[token];
-        uint256 payment = ((totalReceived * erc20RevenueShare[account]) / BASE) - erc20Released[token][account];
-
-        if (payment <= 0) {
+        if (payment == 0) {
             revert NoDueERC20Payment({ wallet: account, tokenAddress: token });
         }
 
         erc20Released[token][account] += payment;
+        erc20Withdrawable[token][account] = 0;
         totalERC20Released[token] += payment;
 
         IERC20(token).transfer(account, payment);
@@ -594,6 +619,17 @@ contract RevenuePath is Ownable, Initializable {
         return totalERC20Released[token];
     }
 
+        /** @notice Get the token amount that has not been accounted for in the revenue path
+     */
+    function getPendingERC20Account(address token)  external view returns  (uint256){
+
+        uint256 pathTokenBalance = IERC20(token).balanceOf(address(this));
+        uint256 pendingAmount = (pathTokenBalance + totalERC20Released[token]) - totalERC20Accounted[token];
+
+        return pendingAmount;
+        
+    }
+
     /** @notice Transfer handler for ETH
      * @param recipient The address of the receiver
      * @param amount The amount of ETH to be received
@@ -650,5 +686,33 @@ contract RevenuePath is Ownable, Initializable {
             currentTier += 1;
             return distributeHoldings(nextTierDistribution, currentTier);
         }
+    }
+
+    /**
+     * @notice Performs accounting and allocation on passed erc20 balances
+     * @param token Address of the token being accounted for
+     */
+
+    function erc20Accounting(address token) private {
+        uint256 pathTokenBalance = IERC20(token).balanceOf(address(this));
+        uint256 pendingAmount = (pathTokenBalance + totalERC20Released[token]) - totalERC20Accounted[token];
+
+        if (pendingAmount == 0) {
+            return;
+        }
+        uint256 totalWallets = erc20DistributionWallets.length;
+
+        for (uint256 i; i < totalWallets; ) {
+            address account = erc20DistributionWallets[i];
+            erc20Withdrawable[token][account] += (pendingAmount * erc20RevenueShare[account]) / BASE;
+
+            unchecked {
+                i++;
+            }
+        }
+
+        totalERC20Accounted[token] += pendingAmount;
+
+        emit ERC20Distributed(token, pendingAmount);
     }
 }
