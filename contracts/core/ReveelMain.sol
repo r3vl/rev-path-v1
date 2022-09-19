@@ -173,4 +173,8 @@ contract ReveelMain is Ownable, Pausable {
     function getPlatformWallet() external view returns (address) {
         return platformWallet;
     }
+
+    function renounceOwnership() public virtual override onlyOwner {
+        revert();
+    }
 }
