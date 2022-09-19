@@ -220,6 +220,8 @@ contract RevenuePath is Ownable, Initializable {
 
     error TotalShareNotHundred();
 
+    error DuplicateWalletEntry();
+
     /********************************
      *           FUNCTIONS           *
      ********************************/
@@ -268,6 +270,9 @@ contract RevenuePath is Ownable, Initializable {
             }
             uint256 totalShare;
             for (uint256 j; j < walletMembers; ) {
+                if(revenueProportion[i][(_walletList[i])[j]] > 0){
+                    revert DuplicateWalletEntry();
+                }
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShare += (_distribution[i])[j];
                 unchecked {
@@ -345,6 +350,9 @@ contract RevenuePath is Ownable, Initializable {
             tier.walletList = _walletList[i];
             uint256 totalShares;
             for (uint256 j; j < walletMembers; ) {
+                if(revenueProportion[nextRevenueTier][(_walletList[i])[j]] > 0){
+                    revert DuplicateWalletEntry();
+                }
                 revenueProportion[nextRevenueTier][(_walletList[i])[j]] = (_distribution[i])[j];
                 totalShares += (_distribution[i])[j];
                 unchecked {
@@ -416,6 +424,9 @@ contract RevenuePath is Ownable, Initializable {
         address[] memory newWalletList = new address[](listLength);
         uint256 totalShares;
         for (uint256 j; j < listLength; ) {
+            if(revenueProportion[tierNumber][_walletList[j]] >0){
+                revert DuplicateWalletEntry();
+            }
             revenueProportion[tierNumber][_walletList[j]] = _distribution[j];
             totalShares += _distribution[j];
             newWalletList[j] = _walletList[j];
@@ -461,7 +472,10 @@ contract RevenuePath is Ownable, Initializable {
         delete erc20DistributionWallets;
 
         for (uint256 j; j < listLength; ) {
-            erc20RevenueShare[_walletList[j]] += _distribution[j];
+            if(erc20RevenueShare[_walletList[j]] > 0){
+                revert DuplicateWalletEntry();
+            }
+            erc20RevenueShare[_walletList[j]] = _distribution[j];
             erc20DistributionWallets.push(_walletList[j]);
             totalShares += _distribution[j];
             unchecked {
