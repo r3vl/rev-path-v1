@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/proxy/utils/Initializable.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /*******************************
  * @title Revenue Path V1
@@ -14,6 +14,8 @@ interface IReveelMain {
   }
 
 contract RevenuePath is Ownable, Initializable {
+    using SafeERC20 for IERC20;
+
     uint256 public constant BASE = 1e4;
     uint8 public constant VERSION = 1;
 
@@ -560,7 +562,8 @@ contract RevenuePath is Ownable, Initializable {
         erc20Withdrawable[token][account] = 0;
         totalERC20Released[token] += payment;
 
-        IERC20(token).transfer(account, payment);
+         IERC20(token).safeTransfer(account, payment);
+
         emit ERC20PaymentReleased(token, account, payment);
     }
 
