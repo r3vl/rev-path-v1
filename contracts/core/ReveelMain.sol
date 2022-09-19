@@ -86,6 +86,7 @@ contract ReveelMain is Ownable, Pausable {
         pathInfo.platformFee = platformFee;
         pathInfo.platformWallet = platformWallet;
         pathInfo.isImmutable = isImmutable;
+        pathInfo.factory = address(this);
 
         path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
         emit RevenuePathCreated(path,_name);

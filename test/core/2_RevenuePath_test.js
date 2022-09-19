@@ -52,7 +52,7 @@ context("RevenuePath: Adding New Tiers", function () {
     ReveelMain = await ethers.getContractFactory("ReveelMain");
     RevenuePath = await ethers.getContractFactory("RevenuePath");
     SimpleToken = await ethers.getContractFactory("SimpleToken");
-    [alex, bob, tracy, kim, tirtha, platformWallet] = this.accounts;
+    [alex, bob, tracy, kim, tirtha, platformWallet,platformWallet1] = this.accounts;
 
     platformFeePercentage = 100;
 
@@ -323,14 +323,33 @@ context("RevenuePath: Update paths", function () {
     async () => {
       const tx = await alex.sendTransaction({
         to: revenuePath.address,
-        value: ethers.utils.parseEther("0.9"),
+        value: ethers.utils.parseEther("1.5"),
       });
 
       // Note: After eth transfer tier updated from 0 to 1
       //
       const tier = [alex.address, bob.address, tracy.address, tirtha.address];
       const distributionList = [2000, 2000, 3000, 3000];
-      const newTierLimit = ethers.utils.parseEther("0");
+      const newTierLimit = ethers.utils.parseEther("0.1");
+
+      await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
+        RevenuePath,
+        "LimitNotGreaterThanTotalDistributed",
+      );
+    });
+
+    it("Reverts for tier update if the updated limit is zero ",
+    async () => {
+      const tx = await alex.sendTransaction({
+        to: revenuePath.address,
+        value: ethers.utils.parseEther("1.5"),
+      });
+
+      // Note: After eth transfer tier updated from 0 to 1
+      //
+      const tier = [alex.address, bob.address, tracy.address, tirtha.address];
+      const distributionList = [2000, 2000, 3000, 3000];
+      const newTierLimit = ethers.utils.parseEther("0.1");
 
       await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
         RevenuePath,
@@ -495,6 +514,29 @@ context("RevenuePath: ETH Distribution", function () {
     const newBal = platformWalletPrevBal.add(feeAcc);
 
     expect(newBal).to.be.equal(platformWalletCurrBal);
+  });
+
+  it("Fee is sent to new platform fee wallet ", async () => {
+    const newPlatformWalletPrevBal = await provider.getBalance(platformWallet1.address);
+
+    const tx = await alex.sendTransaction({
+      to: revenuePath.address,
+      value: ethers.utils.parseEther("3"),
+    });
+
+    let feeAcc = await revenuePath.getTotalFeeAccumulated();
+    const oldWallet = await reveelFactory.getPlatformWallet();
+
+    await reveelFactory.setPlatformWallet(platformWallet1.address);
+    const releaseFund = await revenuePath.release(tracy.address);
+    await releaseFund.wait();
+    
+
+    const newPlatformWalletCurrBal = await provider.getBalance(platformWallet1.address);
+    const newWallet = await reveelFactory.getPlatformWallet();
+    const newBal = newPlatformWalletPrevBal.add(feeAcc);
+
+    expect(newBal).to.be.equal(newPlatformWalletCurrBal);
   });
 
   it("After fee distribution accumulated fee becomes zero ", async () => {

@@ -9,6 +9,9 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
  * @title Revenue Path V1
  * @notice The revenue path clone instance contract.
  */
+interface IReveelMain {
+    function getPlatformWallet() external view returns (address);
+  }
 
 contract RevenuePath is Ownable, Initializable {
     uint256 public constant BASE = 1e4;
@@ -36,6 +39,8 @@ contract RevenuePath is Ownable, Initializable {
     uint256 private totalReleased;
 
     string private name;
+
+    address private mainFactory;
 
     /// ETH
 
@@ -84,6 +89,7 @@ contract RevenuePath is Ownable, Initializable {
         address platformWallet;
         bool isImmutable;
         string name;
+        address factory;
     }
 
     Revenue[] private revenueTiers;
@@ -231,6 +237,7 @@ contract RevenuePath is Ownable, Initializable {
     /** @notice Contract ETH receiver, triggers distribution. Called when ETH is transferred to the revenue path.
      */
     receive() external payable {
+
         distributeHoldings(msg.value, currentTier);
     }
 
@@ -310,6 +317,7 @@ contract RevenuePath is Ownable, Initializable {
         }
         platformFeeWallet = pathInfo.platformWallet;
         platformFee = pathInfo.platformFee;
+        mainFactory = pathInfo.factory;
         isImmutable = pathInfo.isImmutable;
         name = pathInfo.name;
         _transferOwnership(_owner);
@@ -528,6 +536,7 @@ contract RevenuePath is Ownable, Initializable {
             uint256 value = feeAccumulated;
             feeAccumulated = 0;
             totalReleased += value;
+            platformFeeWallet = IReveelMain(mainFactory).getPlatformWallet();
             sendValue(payable(platformFeeWallet), value);
         }
 
