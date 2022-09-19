@@ -227,11 +227,26 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      */
     error InsufficentBalance(uint256 contractBalance, uint256 requiredAmount);
 
+    /**
+     * @dev Reverts when sum of all distribution is not equal to BASE
+     */
     error TotalShareNotHundred();
+
+   /**
+    *  @dev Reverts when duplicate wallet entry is present during addition or updates
+    */
 
     error DuplicateWalletEntry();
 
+    /**
+     *  @dev Reverts when tier limit given is zero in certain cases
+     */
+
     error TierLimitGivenZero();
+
+    /**
+     * @dev Reverts if zero distribution is given for a passed wallet
+     */
 
     error ZeroDistributionProvided();
 
