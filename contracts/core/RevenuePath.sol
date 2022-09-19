@@ -136,13 +136,13 @@ contract RevenuePath is Ownable, Initializable {
         uint256 indexed newLimit
     );
 
-        /** @notice Emits when erc20 revenue list is are updated
+    /** @notice Emits when erc20 revenue list is are updated
      * @param updatedWalletList The wallet list of different tiers
      * @param updatedDistributionList The corresponding shares of all tiers
      */
     event ERC20RevenueUpdated(address[] updatedWalletList, uint256[] updatedDistributionList);
 
-     /** @notice Emits when erc20 revenue accounting is done
+    /** @notice Emits when erc20 revenue accounting is done
      * @param token The token for which accounting has been done
      * @param amount The amount of token that has been accounted for
      */
@@ -222,6 +222,8 @@ contract RevenuePath is Ownable, Initializable {
 
     error DuplicateWalletEntry();
 
+    error TierLimitGivenZero();
+
     /********************************
      *           FUNCTIONS           *
      ********************************/
@@ -266,11 +268,14 @@ contract RevenuePath is Ownable, Initializable {
             uint256 walletMembers = _walletList[i].length;
             tier.walletList = _walletList[i];
             if (i != listLength - 1) {
+                if (_tierLimit[i] == 0) {
+                    revert TierLimitGivenZero();
+                }
                 tier.limitAmount = _tierLimit[i];
             }
             uint256 totalShare;
             for (uint256 j; j < walletMembers; ) {
-                if(revenueProportion[i][(_walletList[i])[j]] > 0){
+                if (revenueProportion[i][(_walletList[i])[j]] > 0) {
                     revert DuplicateWalletEntry();
                 }
                 revenueProportion[i][(_walletList[i])[j]] = (_distribution[i])[j];
@@ -326,10 +331,20 @@ contract RevenuePath is Ownable, Initializable {
                 distributionCount: _distribution.length
             });
         }
+        if ((_walletList.length) != previousTierLimit.length) {
+            revert WalletAndTierLimitMismatch({
+                walletCount: _walletList.length,
+                tierLimitCount: previousTierLimit.length
+            });
+        }
 
         uint256 listLength = _walletList.length;
         uint256 nextRevenueTier = revenueTiers.length;
         for (uint256 i; i < listLength; ) {
+            if (previousTierLimit[i] == 0) {
+                revert TierLimitGivenZero();
+            }
+
             if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
                 revert LimitNotGreaterThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
@@ -350,7 +365,7 @@ contract RevenuePath is Ownable, Initializable {
             tier.walletList = _walletList[i];
             uint256 totalShares;
             for (uint256 j; j < walletMembers; ) {
-                if(revenueProportion[nextRevenueTier][(_walletList[i])[j]] > 0){
+                if (revenueProportion[nextRevenueTier][(_walletList[i])[j]] > 0) {
                     revert DuplicateWalletEntry();
                 }
                 revenueProportion[nextRevenueTier][(_walletList[i])[j]] = (_distribution[i])[j];
@@ -389,17 +404,23 @@ contract RevenuePath is Ownable, Initializable {
         uint256 newLimit,
         uint256 tierNumber
     ) external isAllowed onlyOwner {
-
         if (tierNumber < currentTier || tierNumber > (revenueTiers.length - 1)) {
             revert IneligibileTierUpdate({ currentTier: currentTier, requestedTier: tierNumber });
         }
 
-        if (newLimit < totalDistributed[tierNumber]) {
+        if (tierNumber < revenueTiers.length - 1) {
+            if (newLimit == 0) {
+                revert TierLimitGivenZero();
+            }
+
+            if (newLimit < totalDistributed[tierNumber]) {
             revert LimitNotGreaterThanTotalDistributed({
                 alreadyDistributed: totalDistributed[tierNumber],
                 proposedNewLimit: newLimit
             });
         }
+        }
+ 
 
         if (_walletList.length != _distribution.length) {
             revert WalletAndDistributionCountMismatch({
@@ -411,20 +432,20 @@ contract RevenuePath is Ownable, Initializable {
         address[] memory previousWalletList = revenueTiers[tierNumber].walletList;
         uint256 previousWalletListLength = previousWalletList.length;
 
-        for(uint256 i; i<previousWalletListLength;){
+        for (uint256 i; i < previousWalletListLength; ) {
             revenueProportion[tierNumber][previousWalletList[i]] = 0;
-            unchecked{
+            unchecked {
                 i++;
             }
         }
 
         revenueTiers[tierNumber].limitAmount = (tierNumber == revenueTiers.length - 1) ? 0 : newLimit;
-        
+
         uint256 listLength = _walletList.length;
         address[] memory newWalletList = new address[](listLength);
         uint256 totalShares;
         for (uint256 j; j < listLength; ) {
-            if(revenueProportion[tierNumber][_walletList[j]] >0){
+            if (revenueProportion[tierNumber][_walletList[j]] > 0) {
                 revert DuplicateWalletEntry();
             }
             revenueProportion[tierNumber][_walletList[j]] = _distribution[j];
@@ -472,7 +493,7 @@ contract RevenuePath is Ownable, Initializable {
         delete erc20DistributionWallets;
 
         for (uint256 j; j < listLength; ) {
-            if(erc20RevenueShare[_walletList[j]] > 0){
+            if (erc20RevenueShare[_walletList[j]] > 0) {
                 revert DuplicateWalletEntry();
             }
             erc20RevenueShare[_walletList[j]] = _distribution[j];
@@ -646,19 +667,16 @@ contract RevenuePath is Ownable, Initializable {
         return totalERC20Released[token];
     }
 
-        /** @notice Get the token amount that has not been accounted for in the revenue path
+    /** @notice Get the token amount that has not been accounted for in the revenue path
      */
-    function getPendingERC20Account(address token)  external view returns  (uint256){
-
+    function getPendingERC20Account(address token) external view returns (uint256) {
         uint256 pathTokenBalance = IERC20(token).balanceOf(address(this));
         uint256 pendingAmount = (pathTokenBalance + totalERC20Released[token]) - totalERC20Accounted[token];
 
         return pendingAmount;
-        
     }
 
-    function getTierWalletCount(uint256 tier) external view returns(uint256){
-
+    function getTierWalletCount(uint256 tier) external view returns (uint256) {
         return revenueTiers[tier].walletList.length;
     }
 
