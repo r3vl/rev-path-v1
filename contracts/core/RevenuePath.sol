@@ -4,6 +4,7 @@ pragma solidity 0.8.9;
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 
 /*******************************
  * @title Revenue Path V1
@@ -13,7 +14,7 @@ interface IReveelMain {
     function getPlatformWallet() external view returns (address);
 }
 
-contract RevenuePath is Ownable, Initializable {
+contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 public constant BASE = 1e4;
@@ -580,7 +581,7 @@ contract RevenuePath is Ownable, Initializable {
      * @param token The address of the ERC20 token
      * @param account The member's wallet address
      */
-    function releaseERC20(address token, address account) external {
+    function releaseERC20(address token, address account) external nonReentrant {
         erc20Accounting(token);
         uint256 payment = erc20Withdrawable[token][account];
 
