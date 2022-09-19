@@ -381,6 +381,7 @@ contract RevenuePath is Ownable, Initializable {
         uint256 newLimit,
         uint256 tierNumber
     ) external isAllowed onlyOwner {
+
         if (tierNumber < currentTier || tierNumber > (revenueTiers.length - 1)) {
             revert IneligibileTierUpdate({ currentTier: currentTier, requestedTier: tierNumber });
         }
@@ -399,22 +400,34 @@ contract RevenuePath is Ownable, Initializable {
             });
         }
 
-        revenueTiers[tierNumber].limitAmount = (tierNumber == revenueTiers.length - 1) ? 0 : newLimit;
+        address[] memory previousWalletList = revenueTiers[tierNumber].walletList;
+        uint256 previousWalletListLength = previousWalletList.length;
 
-        uint256 listLength = _walletList.length;
-        uint256 totalShares;
-        for (uint256 i; i < listLength; ) {
-            revenueProportion[tierNumber][_walletList[i]] = _distribution[i];
-            totalShares += _distribution[i];
-            unchecked {
+        for(uint256 i; i<previousWalletListLength;){
+            revenueProportion[tierNumber][previousWalletList[i]] = 0;
+            unchecked{
                 i++;
             }
         }
 
+        revenueTiers[tierNumber].limitAmount = (tierNumber == revenueTiers.length - 1) ? 0 : newLimit;
+        
+        uint256 listLength = _walletList.length;
+        address[] memory newWalletList = new address[](listLength);
+        uint256 totalShares;
+        for (uint256 j; j < listLength; ) {
+            revenueProportion[tierNumber][_walletList[j]] = _distribution[j];
+            totalShares += _distribution[j];
+            newWalletList[j] = _walletList[j];
+            unchecked {
+                j++;
+            }
+        }
         if (totalShares != BASE) {
             revert TotalShareNotHundred();
         }
 
+        revenueTiers[tierNumber].walletList = newWalletList;
         emit RevenueTiersUpdated(_walletList, _distribution, tierNumber, newLimit);
     }
 
@@ -628,6 +641,11 @@ contract RevenuePath is Ownable, Initializable {
 
         return pendingAmount;
         
+    }
+
+    function getTierWalletCount(uint256 tier) external view returns(uint256){
+
+        return revenueTiers[tier].walletList.length;
     }
 
     /** @notice Transfer handler for ETH
