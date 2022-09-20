@@ -7,6 +7,8 @@ import "openzeppelin-solidity/contracts/security/Pausable.sol";
 import "./RevenuePath.sol";
 
 contract ReveelMain is Ownable, Pausable {
+
+    uint256 public constant BASE = 1e4;
     //@notice Fee percentage that will be applicable for additional tiers
     uint88 private platformFee;
     //@notice Address of platform wallet to collect fees
@@ -51,6 +53,12 @@ contract ReveelMain is Ownable, Pausable {
      */
     error ZeroAddressProvided();
 
+    /**
+     * @dev Reverts when platform fee out of bound
+     */
+
+    error PlatformFeeNotAppropriate();
+
     constructor(
         address _libraryAddress,
         uint88 _platformFee,
@@ -60,6 +68,9 @@ contract ReveelMain is Ownable, Pausable {
             revert ZeroAddressProvided();
         }
 
+        if(platformFee > BASE){
+            revert PlatformFeeNotAppropriate();
+        }
         libraryAddress = _libraryAddress;
         platformFee = _platformFee;
         platformWallet = _platformWallet;
@@ -86,6 +97,7 @@ contract ReveelMain is Ownable, Pausable {
         pathInfo.platformFee = platformFee;
         pathInfo.platformWallet = platformWallet;
         pathInfo.isImmutable = isImmutable;
+        pathInfo.factory = address(this);
 
         path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
         emit RevenuePathCreated(path,_name);
@@ -106,6 +118,10 @@ contract ReveelMain is Ownable, Pausable {
      * @param newFeePercentage The new fee percentage
      */
     function setPlatformFee(uint88 newFeePercentage) external onlyOwner {
+        
+        if(platformFee > BASE){
+            revert PlatformFeeNotAppropriate();
+        }
         platformFee = newFeePercentage;
         emit UpdatedPlatformFee(platformFee);
     }
@@ -156,5 +172,9 @@ contract ReveelMain is Ownable, Pausable {
      */
     function getPlatformWallet() external view returns (address) {
         return platformWallet;
+    }
+
+    function renounceOwnership() public virtual override onlyOwner {
+        revert();
     }
 }
