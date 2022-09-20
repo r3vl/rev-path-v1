@@ -279,7 +279,7 @@ context("RevenuePath: Update paths", function () {
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
     let distributionList = [2000, 2000, 3000, 3000];
 
-    const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
+    const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
     const tirthaShareAfterUpdate = await revenuePath.getErc20WalletShare(tirtha.address);
     expect(tirthaShareAfterUpdate).to.be.greaterThan(tirthaShareBeforeUpdate);
@@ -293,7 +293,7 @@ context("RevenuePath: Update paths", function () {
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
     let distributionList = [2000, 2000, 3000, 3000];
 
-    const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
+    const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
 
     kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
@@ -401,7 +401,7 @@ context("RevenuePath: Update paths", function () {
     const tier = [alex.address, bob.address, tracy.address];
     const distributionList = [2000, 2000, 3000];
 
-    await expect(revenuePath.updateErc20Distrbution(tier, distributionList)).to.be.revertedWithCustomError(
+    await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
       "TotalShareNotHundred",
     );
@@ -411,7 +411,7 @@ context("RevenuePath: Update paths", function () {
     const tier = [alex.address, bob.address, tracy.address];
     const distributionList = [2000, 2000, 3000, 3000];
 
-    await expect(revenuePath.updateErc20Distrbution(tier, distributionList)).to.be.revertedWithCustomError(
+    await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
       "WalletAndDistributionCountMismatch",
     );
@@ -659,7 +659,7 @@ context("RevenuePath: ERC20 Distribution", function () {
     const tier = [alex.address, bob.address, tracy.address, tirtha.address];
     const distributionList = [2000, 2000, 3000, 3000];
 
-    const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
+    const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
     
     // Previously accounted token withdrawal

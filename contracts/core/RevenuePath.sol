@@ -232,9 +232,9 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      */
     error TotalShareNotHundred();
 
-   /**
-    *  @dev Reverts when duplicate wallet entry is present during addition or updates
-    */
+    /**
+     *  @dev Reverts when duplicate wallet entry is present during addition or updates
+     */
 
     error DuplicateWalletEntry();
 
@@ -258,6 +258,34 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      */
     receive() external payable {
         distributeHoldings(msg.value, currentTier);
+    }
+
+    /**
+     * @notice Performs accounting and allocation on passed erc20 balances
+     * @param token Address of the token being accounted for
+     */
+
+    function erc20Accounting(address token) public {
+        uint256 pathTokenBalance = IERC20(token).balanceOf(address(this));
+        uint256 pendingAmount = (pathTokenBalance + totalERC20Released[token]) - totalERC20Accounted[token];
+
+        if (pendingAmount == 0) {
+            return;
+        }
+        uint256 totalWallets = erc20DistributionWallets.length;
+
+        for (uint256 i; i < totalWallets; ) {
+            address account = erc20DistributionWallets[i];
+            erc20Withdrawable[token][account] += (pendingAmount * erc20RevenueShare[account]) / BASE;
+
+            unchecked {
+                i++;
+            }
+        }
+
+        totalERC20Accounted[token] += pendingAmount;
+
+        emit ERC20Distributed(token, pendingAmount);
     }
 
     /** @notice The initializer for revenue path, directly called from the RevenueMain contract.._
@@ -523,7 +551,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param _walletList A list of member wallets
      * @param _distribution A list of distribution percentages
      */
-    function updateErc20Distrbution(address[] calldata _walletList, uint256[] calldata _distribution)
+    function updateErc20Distribution(address[] calldata _walletList, uint256[] calldata _distribution)
         external
         isAllowed
         onlyOwner
@@ -620,7 +648,8 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         external
         view
         returns (uint256 _limitAmount, address[] memory _walletList)
-    {   require(tierNumber <= revenueTiers.length, "TIER_DOES_NOT_EXIST");
+    {
+        require(tierNumber <= revenueTiers.length, "TIER_DOES_NOT_EXIST");
         uint256 limit = revenueTiers[tierNumber].limitAmount;
         address[] memory listWallet = revenueTiers[tierNumber].walletList;
         return (limit, listWallet);
@@ -794,33 +823,5 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             currentTier += 1;
             return distributeHoldings(nextTierDistribution, currentTier);
         }
-    }
-
-    /**
-     * @notice Performs accounting and allocation on passed erc20 balances
-     * @param token Address of the token being accounted for
-     */
-
-    function erc20Accounting(address token) private {
-        uint256 pathTokenBalance = IERC20(token).balanceOf(address(this));
-        uint256 pendingAmount = (pathTokenBalance + totalERC20Released[token]) - totalERC20Accounted[token];
-
-        if (pendingAmount == 0) {
-            return;
-        }
-        uint256 totalWallets = erc20DistributionWallets.length;
-
-        for (uint256 i; i < totalWallets; ) {
-            address account = erc20DistributionWallets[i];
-            erc20Withdrawable[token][account] += (pendingAmount * erc20RevenueShare[account]) / BASE;
-
-            unchecked {
-                i++;
-            }
-        }
-
-        totalERC20Accounted[token] += pendingAmount;
-
-        emit ERC20Distributed(token, pendingAmount);
     }
 }
