@@ -35,7 +35,7 @@ async function pathInitializerFixture() {
   const tierTwoFeeDistribution = [3300, 3300, 3400];
   const tierTwoLimit = ethers.utils.parseEther("1.2");
 
-  const tierThreeAddressList = [tirtha.address, bob.address];
+  const tierThreeAddressList = [kim.address, bob.address];
   const tierThreeFeeDistribution = [5000, 5000];
 
   const tiers = [tierOneAddressList, tierTwoAddressList, tierThreeAddressList];
@@ -52,7 +52,7 @@ context("RevenuePath: Adding New Tiers", function () {
     ReveelMain = await ethers.getContractFactory("ReveelMain");
     RevenuePath = await ethers.getContractFactory("RevenuePath");
     SimpleToken = await ethers.getContractFactory("SimpleToken");
-    [alex, bob, tracy, kim, tirtha, platformWallet] = this.accounts;
+    [alex, bob, tracy, kim, tirtha, platformWallet,platformWallet1] = this.accounts;
 
     platformFeePercentage = 100;
 
@@ -274,11 +274,32 @@ context("RevenuePath: Update paths", function () {
   });
 
   it("Update ERC20 revenue tier ", async () => {
+    const tirthaShareBeforeUpdate = await revenuePath.getErc20WalletShare(tirtha.address);
+    expect(tirthaShareBeforeUpdate).to.be.equal(0);
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
     let distributionList = [2000, 2000, 3000, 3000];
 
-    const updateTx = await revenuePath.updateErc20Distrbution(tier, distributionList);
+    const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
+    const tirthaShareAfterUpdate = await revenuePath.getErc20WalletShare(tirtha.address);
+    expect(tirthaShareAfterUpdate).to.be.greaterThan(tirthaShareBeforeUpdate);
+    
+  });
+
+  it("Wallet not share holder after ERC20 distribution update", async () => {
+    const kimSharesBeforeUpdate = await revenuePath.getErc20WalletShare(kim.address);
+    expect(kimSharesBeforeUpdate).to.be.greaterThan(0);
+
+    let tier = [alex.address, bob.address, tracy.address, tirtha.address];
+    let distributionList = [2000, 2000, 3000, 3000];
+
+    const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
+    await updateTx.wait();
+
+    kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
+    expect(kimSharesAfterUpdate).to.be.equal(0);
+
+    
   });
   it("Reverts for tier number lesser than current tier during tier updates ", async () => {
     const tx = await alex.sendTransaction({
@@ -302,14 +323,33 @@ context("RevenuePath: Update paths", function () {
     async () => {
       const tx = await alex.sendTransaction({
         to: revenuePath.address,
-        value: ethers.utils.parseEther("0.9"),
+        value: ethers.utils.parseEther("1.5"),
       });
 
       // Note: After eth transfer tier updated from 0 to 1
       //
       const tier = [alex.address, bob.address, tracy.address, tirtha.address];
       const distributionList = [2000, 2000, 3000, 3000];
-      const newTierLimit = ethers.utils.parseEther("0");
+      const newTierLimit = ethers.utils.parseEther("0.1");
+
+      await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
+        RevenuePath,
+        "LimitNotGreaterThanTotalDistributed",
+      );
+    });
+
+    it("Reverts for tier update if the updated limit is zero ",
+    async () => {
+      const tx = await alex.sendTransaction({
+        to: revenuePath.address,
+        value: ethers.utils.parseEther("1.5"),
+      });
+
+      // Note: After eth transfer tier updated from 0 to 1
+      //
+      const tier = [alex.address, bob.address, tracy.address, tirtha.address];
+      const distributionList = [2000, 2000, 3000, 3000];
+      const newTierLimit = ethers.utils.parseEther("0.1");
 
       await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
         RevenuePath,
@@ -361,7 +401,7 @@ context("RevenuePath: Update paths", function () {
     const tier = [alex.address, bob.address, tracy.address];
     const distributionList = [2000, 2000, 3000];
 
-    await expect(revenuePath.updateErc20Distrbution(tier, distributionList)).to.be.revertedWithCustomError(
+    await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
       "TotalShareNotHundred",
     );
@@ -371,7 +411,7 @@ context("RevenuePath: Update paths", function () {
     const tier = [alex.address, bob.address, tracy.address];
     const distributionList = [2000, 2000, 3000, 3000];
 
-    await expect(revenuePath.updateErc20Distrbution(tier, distributionList)).to.be.revertedWithCustomError(
+    await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
       "WalletAndDistributionCountMismatch",
     );
@@ -476,6 +516,29 @@ context("RevenuePath: ETH Distribution", function () {
     expect(newBal).to.be.equal(platformWalletCurrBal);
   });
 
+  it("Fee is sent to new platform fee wallet ", async () => {
+    const newPlatformWalletPrevBal = await provider.getBalance(platformWallet1.address);
+
+    const tx = await alex.sendTransaction({
+      to: revenuePath.address,
+      value: ethers.utils.parseEther("3"),
+    });
+
+    let feeAcc = await revenuePath.getTotalFeeAccumulated();
+    const oldWallet = await reveelFactory.getPlatformWallet();
+
+    await reveelFactory.setPlatformWallet(platformWallet1.address);
+    const releaseFund = await revenuePath.release(tracy.address);
+    await releaseFund.wait();
+    
+
+    const newPlatformWalletCurrBal = await provider.getBalance(platformWallet1.address);
+    const newWallet = await reveelFactory.getPlatformWallet();
+    const newBal = newPlatformWalletPrevBal.add(feeAcc);
+
+    expect(newBal).to.be.equal(newPlatformWalletCurrBal);
+  });
+
   it("After fee distribution accumulated fee becomes zero ", async () => {
     const tx = await alex.sendTransaction({
       to: revenuePath.address,
@@ -573,17 +636,10 @@ context("RevenuePath: ERC20 Distribution", function () {
     );
   });
 
-  it("Reverts ERC20 release if there is no revenueShare ", async () => {
-    await expect(revenuePath.releaseERC20(simpleToken.address, kim.address)).to.revertedWithCustomError(
-      RevenuePath,
-      "ZeroERC20Shares",
-    );
-  });
-
-  it("Reverts ERC20 release if there is no revenueShare ", async () => {
+  it("Reverts ERC20 release if there is no revenue ", async () => {
     const tx = await simpleToken.transfer(revenuePath.address, ethers.utils.parseEther("1000"));
     await tx.wait();
-
+    
     const releaseFund = await revenuePath.releaseERC20(simpleToken.address, bob.address);
     await releaseFund.wait();
 
@@ -592,6 +648,31 @@ context("RevenuePath: ERC20 Distribution", function () {
       "NoDueERC20Payment",
     );
   });
+
+  it("Wallet can't double claim after ERC20 list update ", async () => {
+    const tx = await simpleToken.transfer(revenuePath.address, ethers.utils.parseEther("1000"));
+    await tx.wait();
+    
+    const releaseFund = await revenuePath.releaseERC20(simpleToken.address, bob.address);
+    await releaseFund.wait();
+
+    const tier = [alex.address, bob.address, tracy.address, tirtha.address];
+    const distributionList = [2000, 2000, 3000, 3000];
+
+    const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
+    await updateTx.wait();
+    
+    // Previously accounted token withdrawal
+    await revenuePath.releaseERC20(simpleToken.address, kim.address);
+    await releaseFund.wait();
+
+
+    await expect(revenuePath.releaseERC20(simpleToken.address, bob.address)).to.revertedWithCustomError(
+      RevenuePath,
+      "NoDueERC20Payment",
+    );
+  });
+
 });
 
 context("RevenuePath: Miscellenious", function () {
