@@ -46,7 +46,7 @@ Based on that, anyone can create 2 types of revenue path:
 
   
 
-- For ETH: If additional layer(greater than 1 tier) is added to distrbution of ETH, X% of fee is charged for the platform.
+- For ETH: If additional layer(greater than 1 tier) is added to distrbution of ETH, a 1% fee is charged for the platform.
 
   
 
@@ -73,13 +73,13 @@ version.
  
 
 -------------------------------------
-*Updating Revenue Tier( ETH)*
+*Updating Revenue Tier (ETH)*
 ---------------------------
 
 You can update one tier at a time, for current and future tiers). The past tiers are not updatable.
 
 -------------------------------------
-*Updating Revenue Path( ERC20)*
+*Updating Revenue Path (ERC20)*
 ---------------------------
 
 For mutable contracts ERC20 distribution is updatable anytime.
@@ -88,7 +88,7 @@ For mutable contracts ERC20 distribution is updatable anytime.
 
 
 -------------------------------------
-*Withdraw Revenue(  ETH & ERC20)*
+*Withdraw Revenue (ETH & ERC20)*
 ---------------------------
 
 For multiple revenue paths, a withdraw request can be submitted to the aggregator contract.
