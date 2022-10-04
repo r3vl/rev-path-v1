@@ -46,7 +46,7 @@ Based on that, anyone can create 2 types of revenue path:
 
   
 
-- For ETH: If additional layer(greater than 1 tier) is added to distrbution of ETH, X% of fee is charged for the platform.
+- For ETH: If additional layer(greater than 1 tier) is added to distrbution of ETH, a 1% fee is charged for the platform.
 
   
 
