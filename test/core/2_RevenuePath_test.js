@@ -69,10 +69,10 @@ context("RevenuePath: Adding New Tiers", function () {
       "Konoha Shinobis",
       false,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
 
-    revenuePath = RevenuePath.attach(revPathAddress);
+    revenuePath = await RevenuePath.attach(revPathAddress);
   });
 
   it("Add 1 tier to existing revenue path ", async () => {
@@ -80,7 +80,8 @@ context("RevenuePath: Adding New Tiers", function () {
     const distributionList = [[2000, 2000, 2000, 2000, 2000]];
     const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
-    const receipt = await (await revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).wait();
+    const addTx = await revenuePath.addRevenueTier(tier, distributionList, previousTierLimit);
+    const receipt = await addTx.wait();
   });
 
   it("Add multiple tiers to existing revenue path ", async () => {
@@ -174,8 +175,8 @@ context("RevenuePath: Adding New Tiers", function () {
       "Konoha Shinobis",
       true,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
 
     const revenuePath1 = RevenuePath.attach(revPathAddress);
 
@@ -201,8 +202,8 @@ context("RevenuePath: Adding New Tiers", function () {
       "Konoha Shinobis 2",
       false,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][1];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
 
     const revenuePath = RevenuePath.attach(revPathAddress);
     tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
@@ -230,8 +231,8 @@ context("RevenuePath: Update paths", function () {
       "Konoha Shinobis 3",
       false,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
     revenuePath = await RevenuePath.attach(revPathAddress);
   });
   it("Update revenue tier for given tier number ", async () => {
@@ -433,8 +434,8 @@ context("RevenuePath: ETH Distribution", function () {
       "Konoha Shinobis 3",
       false,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
     revenuePath = await RevenuePath.attach(revPathAddress);
   });
 
@@ -575,8 +576,8 @@ context("RevenuePath: ETH Distribution", function () {
     const tierLimit = [];
 
     const revPath = await reveelFactory.createRevenuePath(tier, distributionList, tierLimit, "Music OGs", false);
-    const receipt = await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][1];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
 
     const revenuePath = await RevenuePath.attach(revPathAddress);
 
@@ -606,8 +607,8 @@ context("RevenuePath: ERC20 Distribution", function () {
       "Konoha Shinobis 1",
       false,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
     revenuePath = await RevenuePath.attach(revPathAddress);
   });
 
@@ -686,8 +687,8 @@ context("RevenuePath: Miscellenious", function () {
       "Konoha Shinobis 1",
       false,
     );
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const revPathAddress = deployed.events[0].address;
     revenuePath = await RevenuePath.attach(revPathAddress);
   });
 
