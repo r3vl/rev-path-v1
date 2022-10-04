@@ -29,3 +29,6 @@ yarn-error.log*
 
 # we use npm
 yarn.lock
+
+# ignore typechain files
+typechain/*

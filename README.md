@@ -46,7 +46,7 @@ Based on that, anyone can create 2 types of revenue path:
 
   
 
-- For ETH: If additional layer(greater than 1 tier) is added to distrbution of ETH, X% of fee is charged for the platform.
+- For ETH: If additional layer(greater than 1 tier) is added to distrbution of ETH, a 1% fee is charged for the platform.
 
   
 
@@ -73,13 +73,13 @@ version.
  
 
 -------------------------------------
-*Updating Revenue Tier( ETH)*
+*Updating Revenue Tier (ETH)*
 ---------------------------
 
 You can update one tier at a time, for current and future tiers). The past tiers are not updatable.
 
 -------------------------------------
-*Updating Revenue Path( ERC20)*
+*Updating Revenue Path (ERC20)*
 ---------------------------
 
 For mutable contracts ERC20 distribution is updatable anytime.
@@ -88,7 +88,7 @@ For mutable contracts ERC20 distribution is updatable anytime.
 
 
 -------------------------------------
-*Withdraw Revenue(  ETH & ERC20)*
+*Withdraw Revenue (ETH & ERC20)*
 ---------------------------
 
 For multiple revenue paths, a withdraw request can be submitted to the aggregator contract.
@@ -239,7 +239,7 @@ Deploy the contracts to the network of your choice. Make sure to review the init
 
 ```sh
 
-$ npx hardhat run deploy/{SCRIPT_NAME} --network {NETWORK_NAME
+$ npx hardhat run deploy/{SCRIPT_NAME} --network {NETWORK_NAME}
 
 ```
 
@@ -249,4 +249,27 @@ e.g:
 
 $ npx hardhat run deploy/1_ReveelMain_deploy.js --network goerli
 
+```
+
+#### Deploy on Localhost
+
+3 terminal windows:
+
+```sh
+# 1.
+npx hardhat node --network hardhat
+
+# 2.
+npx hardhat console --network localhost
+
+# 3.
+npx hardhat run deploy/3_All_deploy.js --network localhost
+```
+
+In the console windows, send yourself some ETH:
+
+```sh
+const YOUR_WALLET_ADDRESS=""
+const signer = await ethers.provider.getSigner()
+await signer.sendTransaction({to: YOUR_WALLET_ADDRESS, value: ethers.utils.parseEther("1")})
 ```
