@@ -181,10 +181,10 @@ context("ReveelMain: Path Creation", function () {
     const { tiers, distributionLists, tierLimits } = await loadFixture(pathInitializerFixture);
 
     const revPath = await reveelFactory.createRevenuePath(tiers, distributionLists, tierLimits, "Music OGs", true);
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const deployedAddress = deployed.events[0].address;
 
-    expect(revPathAddress).to.be.properAddress;
+    expect(deployedAddress).to.be.properAddress;
 
   });
 
@@ -218,10 +218,10 @@ context("ReveelMain: Path Creation", function () {
     const tierLimit = [];
 
     const revPath = await reveelFactory.createRevenuePath(tier, distributionList, tierLimit, "Music OGs", true);
-    await revPath.wait();
-    const revPathAddress = (await reveelFactory.getPaths())[0][0];
+    const deployed = await revPath.wait();
+    const deployedAddress = deployed.events[0].address;
 
-    expect(revPathAddress).to.be.properAddress;
+    expect(deployedAddress).to.be.properAddress;
   });
 
   it("Reverts single tier revenue path creation if share not equal to 100% ", async () => {

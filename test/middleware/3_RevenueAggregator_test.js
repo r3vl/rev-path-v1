@@ -29,6 +29,13 @@ let simpleToken;
 let revenueAggregator;
 const provider = waffle.provider;
 
+let deployed;
+let deployedAddress;
+let revenuePath1;
+let revenuePath2;
+let revenuePath3;
+let paths;
+
 async function pathInitializerFixture() {
   const tierOneAddressList = [bob.address, tracy.address, alex.address, kim.address];
   const tierOneFeeDistribution = [2000, 3000, 3000, 2000];
@@ -71,7 +78,9 @@ before(async () => {
     "Konoha Shinobis 1",
     false,
   );
-  await revPath1.wait();
+  deployed = await revPath1.wait();
+  deployedAddress = deployed.events[0].address;
+  revenuePath1 = RevenuePath.attach(deployedAddress);
 
   const revPath2 = await reveelFactory.createRevenuePath(
     [[bob.address, tracy.address, alex.address, kim.address]],
@@ -80,7 +89,9 @@ before(async () => {
     "Konoha Shinobis 2",
     true,
   );
-  await revPath2.wait();
+  deployed = await revPath2.wait();
+  deployedAddress = deployed.events[0].address;
+  revenuePath2 = RevenuePath.attach(deployedAddress);
 
   const revPath3 = await reveelFactory.createRevenuePath(
     tiers,
@@ -89,16 +100,15 @@ before(async () => {
     "Konoha Shinobis 3",
     true,
   );
-  await revPath3.wait();
+  deployed = await revPath3.wait();
+  deployedAddress = deployed.events[0].address;
+  revenuePath3 = RevenuePath.attach(deployedAddress);
+
+  paths = [revenuePath1.address, revenuePath2.address, revenuePath3.address]
 });
 
 context("Multi Withdrawal: Aggregator", function () {
   it("Withdraw ETH across path for self", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await alex.sendTransaction({
       to: revenuePath1.address,
       value: ethers.utils.parseEther("3"),
@@ -121,11 +131,6 @@ context("Multi Withdrawal: Aggregator", function () {
   });
 
   it("Withdraw ETH for someone else", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await alex.sendTransaction({
       to: revenuePath1.address,
       value: ethers.utils.parseEther("3"),
@@ -148,11 +153,6 @@ context("Multi Withdrawal: Aggregator", function () {
   });
 
   it("Emits event for multi ETH withdrawal  across paths", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await alex.sendTransaction({
       to: revenuePath1.address,
       value: ethers.utils.parseEther("3"),
@@ -175,11 +175,6 @@ context("Multi Withdrawal: Aggregator", function () {
   });
 
   it("Withdraw ERC20 across path for self", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await (await simpleToken.transfer(revenuePath1.address, ethers.utils.parseEther("1000"))).wait();
     await (await simpleToken.transfer(revenuePath2.address, ethers.utils.parseEther("2090"))).wait();
     await (await simpleToken.transfer(revenuePath3.address, ethers.utils.parseEther("11000"))).wait();
@@ -192,11 +187,6 @@ context("Multi Withdrawal: Aggregator", function () {
   });
 
   it("Withdraw ERC20 across path for others", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await (await simpleToken.transfer(revenuePath1.address, ethers.utils.parseEther("1000"))).wait();
     await (await simpleToken.transfer(revenuePath2.address, ethers.utils.parseEther("2090"))).wait();
     await (await simpleToken.transfer(revenuePath3.address, ethers.utils.parseEther("11000"))).wait();
@@ -208,11 +198,6 @@ context("Multi Withdrawal: Aggregator", function () {
     expect(prevBal).to.be.lessThan(currBal);
   });
   it("Emits event for withdraw of ERC20 across paths", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await (await simpleToken.transfer(revenuePath1.address, ethers.utils.parseEther("1000"))).wait();
     await (await simpleToken.transfer(revenuePath2.address, ethers.utils.parseEther("2090"))).wait();
     await (await simpleToken.transfer(revenuePath3.address, ethers.utils.parseEther("11000"))).wait();
@@ -224,11 +209,6 @@ context("Multi Withdrawal: Aggregator", function () {
   });
 
   it("Reverts withdraw ERC20 if zero address path is passed ", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-    const revenuePath2 = await RevenuePath.attach(paths[1]);
-    const revenuePath3 = await RevenuePath.attach(paths[2]);
-
     await (await simpleToken.transfer(revenuePath1.address, ethers.utils.parseEther("1000"))).wait();
     await (await simpleToken.transfer(revenuePath2.address, ethers.utils.parseEther("2090"))).wait();
     await (await simpleToken.transfer(revenuePath3.address, ethers.utils.parseEther("11000"))).wait();
@@ -243,9 +223,6 @@ context("Multi Withdrawal: Aggregator", function () {
   });
 
   it("Reverts withdraw ETH if zero address path is passed ", async () => {
-    const paths = (await reveelFactory.getPaths())[0];
-    const revenuePath1 = await RevenuePath.attach(paths[0]);
-
     await expect(
       revenueAggregator.withdrawPathEth([constants.ZERO_ADDRESS, revenuePath1.address], bob.address),
     ).to.revertedWith("ZERO_ADDRESS_CAN_NOT_BE_CONTRACT");

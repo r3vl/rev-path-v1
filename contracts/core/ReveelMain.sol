@@ -13,8 +13,6 @@ contract ReveelMain is Ownable, Pausable {
     uint88 private platformFee;
     //@notice Address of platform wallet to collect fees
     address private platformWallet;
-    //@notice The list of revenue path contracts
-    RevenuePath[] private revenuePaths;
     //@notice The revenue path contract address who's bytecode will be used for cloning
     address private libraryAddress;
 
@@ -90,7 +88,6 @@ contract ReveelMain is Ownable, Pausable {
         bool isImmutable
     ) external whenNotPaused {
         RevenuePath path = RevenuePath(payable(Clones.clone(libraryAddress)));
-        revenuePaths.push(path);
 
         RevenuePath.PathInfo memory pathInfo;
         pathInfo.name = _name;
@@ -148,12 +145,6 @@ contract ReveelMain is Ownable, Pausable {
         } else {
             _unpause();
         }
-    }
-
-    /** @notice Get the list of revenue paths deployed and count
-     */
-    function getPaths() external view returns (RevenuePath[] memory, uint256 totalPaths) {
-        return (revenuePaths, revenuePaths.length);
     }
 
     /** @notice Gets the libaray contract address
