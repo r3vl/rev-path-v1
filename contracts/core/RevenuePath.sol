@@ -17,21 +17,21 @@ interface IReveelMain {
 contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    uint256 public constant BASE = 1e4;
     uint8 public constant VERSION = 1;
-
-    //@notice Addres of platform wallet to collect fees
-    address private platformFeeWallet;
+    //@notice Fee percentage that will be applicable for additional tiers
+    uint88 private platformFee;
+    address private mainFactory;
 
     //@notice Status to flag if fee is applicable to the revenue paths
     bool private feeRequired;
 
     //@notice Status to flag if revenue path is immutable. True if immutable
     bool private isImmutable;
-
-    //@notice Fee percentage that will be applicable for additional tiers
-    uint88 private platformFee;
-
+    
+    //@notice Addres of platform wallet to collect fees
+    address private platformFeeWallet;
+    
+    uint256 public constant BASE = 1e4;
     //@notice Current ongoing tier for eth distribution, in case multiple tiers are added
     uint256 private currentTier;
 
@@ -42,8 +42,6 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     uint256 private totalReleased;
 
     string private name;
-
-    address private mainFactory;
 
     /// ETH
 
@@ -91,8 +89,8 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         uint88 platformFee;
         address platformWallet;
         bool isImmutable;
-        string name;
         address factory;
+        string name;
     }
 
     Revenue[] private revenueTiers;
