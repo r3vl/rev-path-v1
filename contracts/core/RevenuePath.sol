@@ -176,7 +176,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param walletCount Length of wallet list
      * @param distributionCount Length of distribution list
      */
-    error WalletAndDistributionCountMismatch(uint256 walletCount, uint256 distributionCount);
+    error WalletAndDistrbtionCtMismatch(uint256 walletCount, uint256 distributionCount);
 
     /** @dev Reverts when passed wallet list and tier limit count doesn't add up.
        The tier limit count should be 1 less than wallet list
@@ -193,7 +193,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param alreadyDistributed The amount of ETH that has already been distributed for that tier
      * @param proposedNewLimit The amount of ETH proposed to be added/updated as limit for the given tier
      */
-    error LimitNotGreaterThanTotalDistributed(uint256 alreadyDistributed, uint256 proposedNewLimit);
+    error LimitLessThanTotalDistributed(uint256 alreadyDistributed, uint256 proposedNewLimit);
 
     /** @dev Reverts when the tier is not eligible for being updated.
       Requested tier for update must be greater than or equal to current tier.
@@ -223,12 +223,12 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param contractBalance  The total balance of ETH available in the contract
      * @param requiredAmount The total amount of ETH requested for withdrawal
      */
-    error InsufficentBalance(uint256 contractBalance, uint256 requiredAmount);
+    error InsufficientBal(uint256 contractBalance, uint256 requiredAmount);
 
     /**
      * @dev Reverts when sum of all distribution is not equal to BASE
      */
-    error TotalShareNotHundred();
+    error TotalShareNot100();
 
     /**
      *  @dev Reverts when duplicate wallet entry is present during addition or updates
@@ -302,7 +302,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         address _owner
     ) external initializer {
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -320,7 +320,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             uint256 walletMembers = _walletList[i].length;
 
             if (walletMembers != _distribution[i].length) {
-                revert WalletAndDistributionCountMismatch({
+                revert WalletAndDistrbtionCtMismatch({
                     walletCount: walletMembers,
                     distributionCount: _distribution[i].length
                 });
@@ -351,7 +351,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
                 }
             }
             if (totalShare != BASE) {
-                revert TotalShareNotHundred();
+                revert TotalShareNot100();
             }
             revenueTiers.push(tier);
 
@@ -394,7 +394,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         uint256[] calldata previousTierLimit
     ) external isAllowed onlyOwner {
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -414,7 +414,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
 
             if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
-                revert LimitNotGreaterThanTotalDistributed({
+                revert LimitLessThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
                     proposedNewLimit: previousTierLimit[i]
                 });
@@ -424,7 +424,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             uint256 walletMembers = _walletList[i].length;
 
             if (walletMembers != _distribution[i].length) {
-                revert WalletAndDistributionCountMismatch({
+                revert WalletAndDistrbtionCtMismatch({
                     walletCount: walletMembers,
                     distributionCount: _distribution[i].length
                 });
@@ -452,7 +452,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
 
             if (totalShares != BASE) {
-                revert TotalShareNotHundred();
+                revert TotalShareNot100();
             }
             revenueTiers.push(tier);
             nextRevenueTier += 1;
@@ -490,7 +490,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
 
             if (newLimit < totalDistributed[tierNumber]) {
-                revert LimitNotGreaterThanTotalDistributed({
+                revert LimitLessThanTotalDistributed({
                     alreadyDistributed: totalDistributed[tierNumber],
                     proposedNewLimit: newLimit
                 });
@@ -498,7 +498,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -538,7 +538,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
         }
         if (totalShares != BASE) {
-            revert TotalShareNotHundred();
+            revert TotalShareNot100();
         }
 
         revenueTiers[tierNumber].walletList = newWalletList;
@@ -555,7 +555,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         onlyOwner
     {
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -587,7 +587,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         if (totalShares != BASE) {
-            revert TotalShareNotHundred();
+            revert TotalShareNot100();
         }
 
         emit ERC20RevenueUpdated(_walletList, _distribution);
@@ -771,7 +771,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      */
     function sendValue(address payable recipient, uint256 amount) internal {
         if (address(this).balance < amount) {
-            revert InsufficentBalance({ contractBalance: address(this).balance, requiredAmount: amount });
+            revert InsufficientBal({ contractBalance: address(this).balance, requiredAmount: amount });
         }
 
         (bool success, ) = recipient.call{ value: amount }("");
