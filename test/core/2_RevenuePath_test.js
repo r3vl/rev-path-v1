@@ -26,17 +26,19 @@ let revenuePath;
 let simpleToken;
 const provider = waffle.provider;
 
+let sevenTierRevenuePath;
+
 async function pathInitializerFixture() {
   const tierOneAddressList = [bob.address, tracy.address, alex.address, kim.address];
-  const tierOneFeeDistribution = [2000, 3000, 3000, 2000];
+  const tierOneFeeDistribution = [2000000, 3000000, 3000000, 2000000];
   const tierOneLimit = ethers.utils.parseEther("0.8");
 
   const tierTwoAddressList = [tracy.address, kim.address, alex.address];
-  const tierTwoFeeDistribution = [3300, 3300, 3400];
+  const tierTwoFeeDistribution = [3300000, 3300000, 3400000];
   const tierTwoLimit = ethers.utils.parseEther("1.2");
 
   const tierThreeAddressList = [kim.address, bob.address];
-  const tierThreeFeeDistribution = [5000, 5000];
+  const tierThreeFeeDistribution = [5000000, 5000000];
 
   const tiers = [tierOneAddressList, tierTwoAddressList, tierThreeAddressList];
   const distributionLists = [tierOneFeeDistribution, tierTwoFeeDistribution, tierThreeFeeDistribution];
@@ -52,9 +54,9 @@ context("RevenuePath: Adding New Tiers", function () {
     ReveelMain = await ethers.getContractFactory("ReveelMain");
     RevenuePath = await ethers.getContractFactory("RevenuePath");
     SimpleToken = await ethers.getContractFactory("SimpleToken");
-    [alex, bob, tracy, kim, tirtha, platformWallet,platformWallet1] = this.accounts;
+    [alex, bob, tracy, kim, tirtha, platformWallet, platformWallet1, six, seven, eight, nine, ten, eleven] = this.accounts;
 
-    platformFeePercentage = 100;
+    platformFeePercentage = 100000;
 
     const libraryAddress = (await RevenuePath.deploy()).address;
     reveelFactory = await ReveelMain.deploy(libraryAddress, platformFeePercentage, platformWallet.address);
@@ -77,7 +79,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
   it("Add 1 tier to existing revenue path ", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address, kim.address]];
-    const distributionList = [[2000, 2000, 2000, 2000, 2000]];
+    const distributionList = [[2000000, 2000000, 2000000, 2000000, 2000000]];
     const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     const receipt = await (await revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).wait();
@@ -89,8 +91,8 @@ context("RevenuePath: Adding New Tiers", function () {
       [tirtha.address, kim.address],
     ];
     const distributionLists = [
-      [2600, 4400, 3000],
-      [5000, 5000],
+      [2600000, 4400000, 3000000],
+      [5000000, 5000000],
     ];
     const previousTierLimits = [ethers.utils.parseEther("1.3"), ethers.utils.parseEther("2")];
     const receipt = await (await revenuePath.addRevenueTier(tiers, distributionLists, previousTierLimits)).wait();
@@ -98,7 +100,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
   it("Emits event when adding multiple tiers to existing revenue path ", async () => {
     const tiers = [[bob.address, tracy.address, kim.address]];
-    const distributionLists = [[2600, 4400, 3000]];
+    const distributionLists = [[2600000, 4400000, 3000000]];
     const previousTierLimits = [ethers.utils.parseEther("2")];
 
     await expect(revenuePath.addRevenueTier(tiers, distributionLists, previousTierLimits)).to.emit(
@@ -109,7 +111,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
   it("Reverts adding tiers if tier address list is not equal to distribution list length ", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
-    const distributionList = [[2000, 2000, 2000, 2000, 2000]];
+    const distributionList = [[2000000, 2000000, 2000000, 2000000, 2000000]];
     const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     await expect(revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
@@ -123,7 +125,7 @@ context("RevenuePath: Adding New Tiers", function () {
       [bob.address, tracy.address, kim.address],
       [tirtha.address, kim.address],
     ];
-    const distributionLists = [[2600, 4400, 3000]];
+    const distributionLists = [[2600000, 4400000, 3000000]];
     const previousTierLimit = [ethers.utils.parseEther("1.3"), ethers.utils.parseEther("2")];
 
     await expect(revenuePath.addRevenueTier(tiers, distributionLists, previousTierLimit)).to.be.revertedWithCustomError(
@@ -146,7 +148,7 @@ context("RevenuePath: Adding New Tiers", function () {
     const currTier = await revenuePath.getCurrentTier();
 
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
-    const distributionList = [[2000, 3000, 3000, 2000]];
+    const distributionList = [[2000000, 3000000, 3000000, 2000000]];
     const previousTierLimit = [ethers.utils.parseEther("0.1")];
 
     await expect(revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
@@ -157,7 +159,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
   it("Reverts adding tiers if total share is not 100% ", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
-    const distributionList = [[2000, 2000, 2000, 2000]];
+    const distributionList = [[2000000, 2000000, 2000000, 2000000]];
     const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     await expect(revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
@@ -180,7 +182,7 @@ context("RevenuePath: Adding New Tiers", function () {
     const revenuePath1 = RevenuePath.attach(revPathAddress);
 
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
-    const distributionList = [[2000, 2000, 3000, 3000]];
+    const distributionList = [[2000000, 2000000, 3000000, 3000000]];
     const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     await expect(revenuePath1.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
@@ -191,7 +193,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
   it(" Fee is introduced if revenue path has greater than one tier ", async () => {
     let tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
-    let distributionList = [[2000, 2000, 3000, 3000]];
+    let distributionList = [[2000000, 2000000, 3000000, 3000000]];
     let tierLimits = [];
 
     const revPath = await reveelFactory.createRevenuePath(
@@ -206,7 +208,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
     const revenuePath = RevenuePath.attach(revPathAddress);
     tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
-    distributionList = [[2000, 2000, 3000, 3000]];
+    distributionList = [[2000000, 2000000, 3000000, 3000000]];
     previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     await revenuePath.addRevenueTier(tier, distributionList, previousTierLimit);
@@ -238,7 +240,7 @@ context("RevenuePath: Update paths", function () {
     const currTier = await revenuePath.getCurrentTier();
 
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    let distributionList = [2000, 2000, 3000, 3000];
+    let distributionList = [2000000, 2000000, 3000000, 3000000];
     let newTierLimit = ethers.utils.parseEther("1.4");
 
     const updateTx = await revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1);
@@ -250,7 +252,7 @@ context("RevenuePath: Update paths", function () {
 
   it("Emits event on Update of revenue tier for given tier number ", async () => {
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    let distributionList = [2000, 2000, 3000, 3000];
+    let distributionList = [2000000, 2000000, 3000000, 3000000];
     let newTierLimit = ethers.utils.parseEther("1.4");
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.emit(
@@ -263,7 +265,7 @@ context("RevenuePath: Update paths", function () {
     const currTier = await revenuePath.getCurrentTier();
 
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    let distributionList = [2000, 2000, 3000, 3000];
+    let distributionList = [2000000, 2000000, 3000000, 3000000];
     let newTierLimit = ethers.utils.parseEther("1.4");
 
     const updateTx = await revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1);
@@ -277,7 +279,7 @@ context("RevenuePath: Update paths", function () {
     const tirthaShareBeforeUpdate = await revenuePath.getErc20WalletShare(tirtha.address);
     expect(tirthaShareBeforeUpdate).to.be.equal(0);
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    let distributionList = [2000, 2000, 3000, 3000];
+    let distributionList = [2000000, 2000000, 3000000, 3000000];
 
     const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
@@ -291,7 +293,7 @@ context("RevenuePath: Update paths", function () {
     expect(kimSharesBeforeUpdate).to.be.greaterThan(0);
 
     let tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    let distributionList = [2000, 2000, 3000, 3000];
+    let distributionList = [2000000, 2000000, 3000000, 3000000];
 
     const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
@@ -310,7 +312,7 @@ context("RevenuePath: Update paths", function () {
     // Note: After eth transfer tier updated from 0 to 1
     //
     const tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    const distributionList = [2000, 2000, 3000, 3000];
+    const distributionList = [2000000, 2000000, 3000000, 3000000];
     const newTierLimit = ethers.utils.parseEther("1.4");
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 0)).to.be.revertedWithCustomError(
@@ -329,7 +331,7 @@ context("RevenuePath: Update paths", function () {
       // Note: After eth transfer tier updated from 0 to 1
       //
       const tier = [alex.address, bob.address, tracy.address, tirtha.address];
-      const distributionList = [2000, 2000, 3000, 3000];
+      const distributionList = [2000000, 2000000, 3000000, 3000000];
       const newTierLimit = ethers.utils.parseEther("0.1");
 
       await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
@@ -348,7 +350,7 @@ context("RevenuePath: Update paths", function () {
       // Note: After eth transfer tier updated from 0 to 1
       //
       const tier = [alex.address, bob.address, tracy.address, tirtha.address];
-      const distributionList = [2000, 2000, 3000, 3000];
+      const distributionList = [2000000, 2000000, 3000000, 3000000];
       const newTierLimit = ethers.utils.parseEther("0.1");
 
       await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
@@ -359,7 +361,7 @@ context("RevenuePath: Update paths", function () {
 
   it("Reverts tier update for tier number not added  ", async () => {
     const tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    const distributionList = [2000, 2000, 3000, 3000];
+    const distributionList = [2000000, 2000000, 3000000, 3000000];
     const newTierLimit = ethers.utils.parseEther("1.4");
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 3)).to.be.revertedWithCustomError(
@@ -377,7 +379,7 @@ context("RevenuePath: Update paths", function () {
     // Note: After eth transfer tier updated from 0 to 1
     //
     const tier = [alex.address, bob.address, tracy.address];
-    const distributionList = [2000, 2000, 3000, 3000];
+    const distributionList = [2000000, 2000000, 3000000, 3000000];
     const newTierLimit = ethers.utils.parseEther("1.4");
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 2)).to.be.revertedWithCustomError(
@@ -388,7 +390,7 @@ context("RevenuePath: Update paths", function () {
 
   it("Reverts for tier updates where distribution total is not 100% ", async () => {
     const tier = [alex.address, bob.address, tracy.address];
-    const distributionList = [2000, 2000, 3000];
+    const distributionList = [2000000, 2000000, 3000000];
     const newTierLimit = ethers.utils.parseEther("1.4");
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 2)).to.be.revertedWithCustomError(
@@ -399,7 +401,7 @@ context("RevenuePath: Update paths", function () {
 
   it("Reverts for erc20 tier update where distribution totalIs not 100% ", async () => {
     const tier = [alex.address, bob.address, tracy.address];
-    const distributionList = [2000, 2000, 3000];
+    const distributionList = [2000000, 2000000, 3000000];
 
     await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
@@ -409,7 +411,7 @@ context("RevenuePath: Update paths", function () {
 
   it("Reverts for erc20 tier update where distribution list and tier address list length are not equal ", async () => {
     const tier = [alex.address, bob.address, tracy.address];
-    const distributionList = [2000, 2000, 3000, 3000];
+    const distributionList = [2000000, 2000000, 3000000, 3000000];
 
     await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
@@ -480,16 +482,17 @@ context("RevenuePath: ETH Distribution", function () {
       to: revenuePath.address,
       value: ethers.utils.parseEther("3"),
     });
-    const firstTierRevShare = (await revenuePath.getRevenueProportion(0, tracy.address)) / 100;
+    const firstTierRevShare = (await revenuePath.getRevenueProportion(0, tracy.address)) / 100000;
     const firstTierRevenue = ((await revenuePath.getTierDistributedAmount(0)) * firstTierRevShare) / 100;
 
-    const secondTierRevShare = (await revenuePath.getRevenueProportion(1, tracy.address)) / 100;
+    const secondTierRevShare = (await revenuePath.getRevenueProportion(1, tracy.address)) / 100000;
     const secondTierRevenue = ((await revenuePath.getTierDistributedAmount(1)) * secondTierRevShare) / 100;
 
-    const thirdTierRevShare = (await revenuePath.getRevenueProportion(2, tracy.address)) / 100;
+    const thirdTierRevShare = (await revenuePath.getRevenueProportion(2, tracy.address)) / 100000;
     const thirdTierRevenue = ((await revenuePath.getTierDistributedAmount(2)) * thirdTierRevShare) / 100;
 
     let totalRevenue = firstTierRevenue + secondTierRevenue + thirdTierRevenue;
+    console.log("totalRevenue", totalRevenue)
     //1% Platform fee deducted
     totalRevenue -= (totalRevenue * 1) / 100;
     const pending = await revenuePath.getPendingEthBalance(tracy.address);
@@ -571,7 +574,7 @@ context("RevenuePath: ETH Distribution", function () {
   });
   it("No platform fee charged for single tier", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address, kim.address]];
-    const distributionList = [[2000, 2000, 2000, 2000, 2000]];
+    const distributionList = [[2000000, 2000000, 2000000, 2000000, 2000000]];
     const tierLimit = [];
 
     const revPath = await reveelFactory.createRevenuePath(tier, distributionList, tierLimit, "Music OGs", false);
@@ -657,7 +660,7 @@ context("RevenuePath: ERC20 Distribution", function () {
     await releaseFund.wait();
 
     const tier = [alex.address, bob.address, tracy.address, tirtha.address];
-    const distributionList = [2000, 2000, 3000, 3000];
+    const distributionList = [2000000, 2000000, 3000000, 3000000];
 
     const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
@@ -698,7 +701,109 @@ context("RevenuePath: Miscellenious", function () {
     await expect(await revenuePath.getTotalEthReleased()).to.be.equal(0);
     await expect(await revenuePath.getRevenuePathName()).to.be.equal("Konoha Shinobis 1");
     await expect(await revenuePath.getEthWithdrawn(bob.address)).to.be.equal(0);
-    await expect(await revenuePath.getErc20WalletShare(bob.address)).to.be.equal(5000);
+    await expect(await revenuePath.getErc20WalletShare(bob.address)).to.be.equal(5000000);
     await expect(await revenuePath.getTotalErc20Released(simpleToken.address)).to.be.equal(0);
+  });
+});
+
+context("RevenuePath: Many decimals", function () {
+  before(async () => {
+    const sevenTierAddressList = [bob.address, tracy.address, alex.address, kim.address, tirtha.address, six.address, seven.address, eight.address, nine.address, ten.address, eleven.address];
+    const sevenTierDistrList = [
+      1011250,
+      1011250,
+      323750,
+      500625,
+      500625,
+      90000,
+      2250000,
+      2937500,
+      840000,
+      35000,
+      500000
+    ];
+    const tierOneLimit = ethers.utils.parseEther("0.8");
+    
+    const tierLimits = [];
+
+    const sevenTierRevPath = await reveelFactory.createRevenuePath(
+      [sevenTierAddressList],
+      [sevenTierDistrList],
+      [],
+      "11 path",
+      false,
+    );
+    await sevenTierRevPath.wait();
+    const sevenTierRevPathAddress = (await reveelFactory.getPaths())[0][0];
+    console.log("revPathAddress", sevenTierRevPathAddress)
+    sevenTierRevenuePath = await RevenuePath.attach(sevenTierRevPathAddress);
+  });
+
+  it(" Call getters to check value", async () => {
+    await expect(await sevenTierRevenuePath.getPlatformWallet()).to.be.equal(platformWallet.address);
+    await expect(await sevenTierRevenuePath.getPlatformFee()).to.be.equal(platformFeePercentage);
+    await expect(await sevenTierRevenuePath.getImmutabilityStatus()).to.be.equal(false);
+    await expect(await sevenTierRevenuePath.getTotalEthReleased()).to.be.equal(0);
+    await expect(await sevenTierRevenuePath.getRevenuePathName()).to.be.equal("11 path");
+    await expect(await sevenTierRevenuePath.getEthWithdrawn(bob.address)).to.be.equal(0);
+    await expect(await sevenTierRevenuePath.getErc20WalletShare(bob.address)).to.be.equal(5000000);
+    await expect(await sevenTierRevenuePath.getTotalErc20Released(simpleToken.address)).to.be.equal(0);
+  });
+
+  it("User gets proper distribution for ETH ", async () => {
+    const tx = await alex.sendTransaction({
+      to: sevenTierRevenuePath.address,
+      value: ethers.utils.parseEther("3"),
+    });
+    console.log("sevenTierRevenuePath.address", sevenTierRevenuePath.address)
+    const firstTierRevShare = (await sevenTierRevenuePath.getRevenueProportion(0, tracy.address)) / 100000;
+    const firstTierRevenue = ((await sevenTierRevenuePath.getTierDistributedAmount(0)) * firstTierRevShare) / 100;
+    const sevenName = await sevenTierRevenuePath.getRevenuePathName()
+    console.log("name check", sevenName)
+    console.log("firstTier", firstTierRevShare, firstTierRevenue)
+    let totalRevenue = firstTierRevenue;
+    console.log("totalRevenue", totalRevenue)
+    //1% Platform fee deducted
+    // totalRevenue -= (totalRevenue * 1) / 100;
+    const pending = await sevenTierRevenuePath.getPendingEthBalance(tracy.address);
+
+    expect(totalRevenue.toString()).to.be.equal(pending);
+  });
+
+  it("ETH release is successful ", async () => {
+    const tx = await alex.sendTransaction({
+      to: sevenTierRevenuePath.address,
+      value: ethers.utils.parseEther("0.9"),
+    });
+
+    console.log("sevenTierRevenuePath.address", sevenTierRevenuePath.address)
+
+    const prevBalance = await provider.getBalance(bob.address);
+    const pendingPayment = await sevenTierRevenuePath.getPendingEthBalance(bob.address);
+
+    const releaseFund = await sevenTierRevenuePath.release(bob.address);
+    await releaseFund.wait();
+
+    const currBalance = await provider.getBalance(bob.address);
+    expect(prevBalance.add(pendingPayment)).to.be.equal(currBalance);
+
+    const sevenPrevBalance = await provider.getBalance(kim.address);
+    const sevenPendingPayment = await sevenTierRevenuePath.getPendingEthBalance(kim.address);
+
+    // const sevenReleaseFund = await sevenTierRevenuePath.release(seven.address);
+    // await sevenReleaseFund.wait();
+
+    // const sevenCurrBalance = await provider.getBalance(seven.address);
+    // expect(sevenPrevBalance.add(sevenPendingPayment)).to.be.equal(sevenCurrBalance);
+
+    console.log(
+      "balances",
+      prevBalance,
+      pendingPayment,
+      currBalance,
+      sevenPrevBalance,
+      sevenPendingPayment,
+      // sevenCurrBalance
+    )
   });
 });

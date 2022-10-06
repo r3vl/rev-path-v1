@@ -8,7 +8,7 @@ import "./RevenuePath.sol";
 
 contract ReveelMain is Ownable, Pausable {
 
-    uint256 public constant BASE = 1e4;
+    uint256 public constant BASE = 1e7;
     //@notice Fee percentage that will be applicable for additional tiers
     uint88 private platformFee;
     //@notice Address of platform wallet to collect fees

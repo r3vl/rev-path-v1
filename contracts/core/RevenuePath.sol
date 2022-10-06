@@ -17,7 +17,7 @@ interface IReveelMain {
 contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    uint256 public constant BASE = 1e4;
+    uint256 public constant BASE = 1e7; // 10000
     uint8 public constant VERSION = 1;
 
     //@notice Addres of platform wallet to collect fees

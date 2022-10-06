@@ -27,7 +27,9 @@ before(async () => {
   RevenuePath = await ethers.getContractFactory("RevenuePath");
   [alex, bob, tracy, kim, tirtha, platformWallet] = this.accounts;
 
-  platformFeePercentage = 100;
+  const oneHundredPercent = 10000000;
+  const onePercent = 100000;
+  platformFeePercentage = onePercent;
 });
 
 context("ReveelMain: Admin", function () {
@@ -59,14 +61,14 @@ context("ReveelMain: Admin", function () {
       .withArgs(newPlatformWallet);
   });
   it("Set new platform fee", async () => {
-    const newFee = 2000;
+    const newFee = 2000000;
     (await reveelFactory.setPlatformFee(newFee)).wait();
 
     expect(await reveelFactory.getPlatformFee()).to.equal(newFee);
   });
 
   it("Emits event for new platform fee", async () => {
-    const newFee = 2000;
+    const newFee = 200000;
 
     await expect(reveelFactory.setPlatformFee(newFee)).to.emit(reveelFactory, "UpdatedPlatformFee").withArgs(newFee);
   });
@@ -107,7 +109,7 @@ context("ReveelMain: Admin", function () {
   });
 
   it("Reverts other than owner chaniging platform fee", async () => {
-    const newFee = 200;
+    const newFee = 200000;
     const owner = await reveelFactory.owner();
     expect(owner).not.to.equal(tracy);
     await expect(reveelFactory.connect(tracy).setPlatformFee(newFee)).to.be.revertedWith(
@@ -139,7 +141,7 @@ context("ReveelMain: Admin", function () {
   });
 
   it("Reverts main deployment with zero library address & platformwallet address", async () => {
-    await expect(ReveelMain.deploy(constants.ZERO_ADDRESS, 1000, constants.ZERO_ADDRESS)).to.be.revertedWithCustomError(
+    await expect(ReveelMain.deploy(constants.ZERO_ADDRESS, platformFeePercentage, constants.ZERO_ADDRESS)).to.be.revertedWithCustomError(
       ReveelMain,
       "ZeroAddressProvided",
     );
@@ -161,15 +163,16 @@ context("ReveelMain: Path Creation", function () {
   });
   async function pathInitializerFixture() {
     const tierOneAddressList = [bob.address, tracy.address, alex.address, kim.address];
-    const tierOneFeeDistribution = [2000, 3000, 3000, 2000];
+    const tierOneFeeDistribution = [2000000, 3000000, 3000000, 2000000];
     const tierOneLimit = ethers.utils.parseEther("0.8");
 
     const tierTwoAddressList = [tracy.address, kim.address, alex.address];
-    const tierTwoFeeDistribution = [3300, 3300, 3400];
+    const tierTwoFeeDistribution = [3301001, 3298999, 3400000];
+    // const tierTwoFeeDistribution = [3300000, 3300000, 3400000];
     const tierTwoLimit = ethers.utils.parseEther("1.2");
 
     const tierThreeAddressList = [tirtha.address];
-    const tierThreeFeeDistribution = [10000];
+    const tierThreeFeeDistribution = [10000000];
 
     const tiers = [tierOneAddressList, tierTwoAddressList, tierThreeAddressList];
     const distributionLists = [tierOneFeeDistribution, tierTwoFeeDistribution, tierThreeFeeDistribution];
@@ -214,7 +217,7 @@ context("ReveelMain: Path Creation", function () {
 
   it("Create Revenue Path with single tier", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address, kim.address]];
-    const distributionList = [[2000, 2000, 2000, 2000, 2000]];
+    const distributionList = [[2000000, 2000000, 2000000, 2000000, 2000000]];
     const tierLimit = [];
 
     const revPath = await reveelFactory.createRevenuePath(tier, distributionList, tierLimit, "Music OGs", true);
@@ -226,7 +229,7 @@ context("ReveelMain: Path Creation", function () {
 
   it("Reverts single tier revenue path creation if share not equal to 100% ", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address, kim.address]];
-    const distributionList = [[2000, 2000, 2000, 2000, 1000]];
+    const distributionList = [[2000000, 2000000, 2000000, 2000000, 1000000]];
     const tierLimit = [];
 
     await expect(
@@ -236,7 +239,7 @@ context("ReveelMain: Path Creation", function () {
 
   it("Reverts multi tier revenue path creation if share not equal to 100% ", async () => {
     const { tiers, tierLimits } = await loadFixture(pathInitializerFixture);
-    const distributionLists = [[2000, 2000, 3000, 3000], [5000, 5000, 1000], [10000]];
+    const distributionLists = [[2000000, 2000000, 3000000, 3000000], [5000000, 5000000, 1000000], [10000000]];
 
     await expect(
       reveelFactory.createRevenuePath(tiers, distributionLists, tierLimits, "Music OGs", true),
