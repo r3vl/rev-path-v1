@@ -12,26 +12,22 @@ import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
  */
 interface IReveelMain {
     function getPlatformWallet() external view returns (address);
+    function getPlatformFee() external view returns (uint88);
 }
 
 contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint8 public constant VERSION = 1;
+    uint16 public constant BASE = 1e4;
     //@notice Fee percentage that will be applicable for additional tiers
-    uint88 private platformFee;
     address private mainFactory;
 
     //@notice Status to flag if fee is applicable to the revenue paths
     bool private feeRequired;
-
     //@notice Status to flag if revenue path is immutable. True if immutable
     bool private isImmutable;
     
-    //@notice Addres of platform wallet to collect fees
-    address private platformFeeWallet;
-    
-    uint256 public constant BASE = 1e4;
     //@notice Current ongoing tier for eth distribution, in case multiple tiers are added
     uint256 private currentTier;
 
@@ -86,8 +82,6 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     }
 
     struct PathInfo {
-        uint88 platformFee;
-        address platformWallet;
         bool isImmutable;
         address factory;
         string name;
@@ -374,9 +368,6 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         if (revenueTiers.length > 1) {
             feeRequired = true;
         }
-        platformFeeWallet = pathInfo.platformWallet;
-
-        platformFee = pathInfo.platformFee;
         mainFactory = pathInfo.factory;
         isImmutable = pathInfo.isImmutable;
         name = pathInfo.name;
@@ -601,18 +592,20 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             revert InsufficientWithdrawalBalance();
         }
 
+        uint256 thisRelease;
         uint256 payment = ethRevenuePending[account];
+        thisRelease = payment;
         released[account] += payment;
-        totalReleased += payment;
         ethRevenuePending[account] = 0;
 
         if (feeAccumulated > 0) {
             uint256 value = feeAccumulated;
             feeAccumulated = 0;
-            totalReleased += value;
-            platformFeeWallet = IReveelMain(mainFactory).getPlatformWallet();
-            sendValue(payable(platformFeeWallet), value);
+            thisRelease += value;
+            sendValue(payable(IReveelMain(mainFactory).getPlatformWallet()), value);
         }
+
+        totalReleased += thisRelease;
 
         sendValue(account, payment);
         emit PaymentReleased(account, payment);
@@ -707,13 +700,13 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     /** @notice Get the platform wallet address
      */
     function getPlatformWallet() external view returns (address) {
-        return platformFeeWallet;
+        return IReveelMain(mainFactory).getPlatformWallet();
     }
 
     /** @notice Get the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint256) {
-        return platformFee;
+    function getPlatformFee() external view returns (uint88) {
+        return IReveelMain(mainFactory).getPlatformFee();
     }
 
     /** @notice Get the revenue path Immutability status
@@ -796,8 +789,8 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         uint256 totalDistributionAmount = currentTierDistribution;
-
-        if (platformFee > 0 && feeRequired) {
+        uint88 platformFee = IReveelMain(mainFactory).getPlatformFee();
+        if (feeRequired && platformFee > 0) {
             uint256 feeDeduction = ((currentTierDistribution * platformFee) / BASE);
             feeAccumulated += feeDeduction;
             currentTierDistribution -= feeDeduction;
