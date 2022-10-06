@@ -5,7 +5,22 @@ const hre = require("hardhat");
  */
 async function main() {
 
-  // 1. deploy library
+  // 1. set your wallet
+  let platformWallet = "";
+  switch (process.env.HARDHAT_NETWORK) {
+    case "mainnet":
+      platformWallet = "0xCB3B18f69da0f12d25EC85AACed53911e61ad386";
+      break;
+    case "goerli":
+      platformWallet = "0x9a66DC388ac88815B964E6829041F3997FA0b76D";
+      break
+    default:
+      // enter your platform wallet here:
+      platformWallet = "";
+      if (platformWallet === "") throw new Error(`you need to set a platform wallet on network: ${process.env.HARDHAT_NETWORK}`);
+  }
+
+  // 2. deploy library
   const RevenuePath = await hre.ethers.getContractFactory("RevenuePath");
   const revenuePath = await RevenuePath.deploy();
 
@@ -18,9 +33,7 @@ async function main() {
   const libraryAddress = revenuePath.address;
   const feePercentage = 100; //1%
 
-  // 2. set your wallet
-  const platformWallet = "0xfd5D88F326f4F8C497E1AD1E218fCA38F12A3F0D";
-
+  // 3. deploy Main with library
   const ReveelMain = await hre.ethers.getContractFactory("ReveelMain");
   const reveelMain = await ReveelMain.deploy(libraryAddress, feePercentage, platformWallet);
 
