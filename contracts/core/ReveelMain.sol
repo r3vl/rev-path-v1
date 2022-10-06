@@ -8,15 +8,16 @@ import "./RevenuePath.sol";
 
 contract ReveelMain is Ownable, Pausable {
 
-    uint256 public constant BASE = 1e4;
+    uint16 public constant BASE = 1e4;
     //@notice Fee percentage that will be applicable for additional tiers
-    uint88 private platformFee;
+    uint16 private platformFee;
     //@notice Address of platform wallet to collect fees
     address private platformWallet;
-    //@notice The list of revenue path contracts
-    RevenuePath[] private revenuePaths;
     //@notice The revenue path contract address who's bytecode will be used for cloning
     address private libraryAddress;
+    //@notice The list of revenue path contracts
+    RevenuePath[] private revenuePaths;
+    
 
     /********************************
      *           EVENTS              *
@@ -33,7 +34,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Updates the platform fee percentage
      * @param newFeePercentage The new fee percentage
      */
-    event UpdatedPlatformFee(uint88 newFeePercentage);
+    event UpdatedPlatformFee(uint16 newFeePercentage);
 
     /** @notice Updates the platform fee collecting wallet
      * @param newWallet The new fee collecting wallet
@@ -61,7 +62,7 @@ contract ReveelMain is Ownable, Pausable {
 
     constructor(
         address _libraryAddress,
-        uint88 _platformFee,
+        uint16 _platformFee,
         address _platformWallet
     ) {
         if (_libraryAddress == address(0) || _platformWallet == address(0)) {
@@ -94,6 +95,7 @@ contract ReveelMain is Ownable, Pausable {
 
         RevenuePath.PathInfo memory pathInfo;
         pathInfo.name = _name;
+        pathInfo.platformFee = platformFee;
         pathInfo.isImmutable = isImmutable;
         pathInfo.factory = address(this);
 
@@ -115,7 +117,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Set the platform fee percentage
      * @param newFeePercentage The new fee percentage
      */
-    function setPlatformFee(uint88 newFeePercentage) external onlyOwner {
+    function setPlatformFee(uint16 newFeePercentage) external onlyOwner {
         
         if(platformFee > BASE){
             revert PlatformFeeNotAppropriate();
@@ -162,7 +164,7 @@ contract ReveelMain is Ownable, Pausable {
 
     /** @notice Gets the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint88) {
+    function getPlatformFee() external view returns (uint16) {
         return platformFee;
     }
 

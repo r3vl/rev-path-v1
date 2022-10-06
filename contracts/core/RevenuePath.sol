@@ -12,7 +12,6 @@ import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
  */
 interface IReveelMain {
     function getPlatformWallet() external view returns (address);
-    function getPlatformFee() external view returns (uint88);
 }
 
 contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
@@ -20,6 +19,8 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
 
     uint8 public constant VERSION = 1;
     uint16 public constant BASE = 1e4;
+    //@notice Fee percentage that will be applicable for additional tiers
+    uint16 private platformFee;
     //@notice Fee percentage that will be applicable for additional tiers
     address private mainFactory;
 
@@ -82,6 +83,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     }
 
     struct PathInfo {
+        uint16 platformFee;
         bool isImmutable;
         address factory;
         string name;
@@ -369,6 +371,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             feeRequired = true;
         }
         mainFactory = pathInfo.factory;
+        platformFee = pathInfo.platformFee;
         isImmutable = pathInfo.isImmutable;
         name = pathInfo.name;
         _transferOwnership(_owner);
@@ -705,8 +708,8 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
 
     /** @notice Get the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint88) {
-        return IReveelMain(mainFactory).getPlatformFee();
+    function getPlatformFee() external view returns (uint16) {
+        return platformFee;
     }
 
     /** @notice Get the revenue path Immutability status
@@ -789,7 +792,6 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         uint256 totalDistributionAmount = currentTierDistribution;
-        uint88 platformFee = IReveelMain(mainFactory).getPlatformFee();
         if (feeRequired && platformFee > 0) {
             uint256 feeDeduction = ((currentTierDistribution * platformFee) / BASE);
             feeAccumulated += feeDeduction;
