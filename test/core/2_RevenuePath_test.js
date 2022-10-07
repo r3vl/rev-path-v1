@@ -1,8 +1,6 @@
 const { expect } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { constants } = require("@openzeppelin/test-helpers");
-const { BigNumber } = require("ethers");
 
 /*************************************
  * @summary Test Suite around Revenue Path
@@ -13,9 +11,16 @@ let alex;
 let bob;
 let tracy;
 let kim;
-let tirtha;
+let tirtha,
+six,
+seven,
+eight,
+nine,
+ten,
+eleven;
 
 let platformWallet;
+let platformWallet1;
 let platformFeePercentage;
 
 let ReveelMain;
@@ -24,7 +29,7 @@ let SimpleToken;
 let reveelFactory;
 let revenuePath;
 let simpleToken;
-const provider = waffle.provider;
+const provider = ethers.provider;
 
 let sevenTierRevenuePath;
 
@@ -209,7 +214,7 @@ context("RevenuePath: Adding New Tiers", function () {
     const revenuePath = RevenuePath.attach(revPathAddress);
     tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
     distributionList = [[2000000, 2000000, 3000000, 3000000]];
-    previousTierLimit = [ethers.utils.parseEther("1.3")];
+    const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     await revenuePath.addRevenueTier(tier, distributionList, previousTierLimit);
 
@@ -298,7 +303,7 @@ context("RevenuePath: Update paths", function () {
     const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
 
-    kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
+    const kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
     expect(kimSharesAfterUpdate).to.be.equal(0);
 
     
@@ -708,6 +713,8 @@ context("RevenuePath: Miscellenious", function () {
 
 context("RevenuePath: Many decimals", function () {
   before(async () => {
+    this.accounts = await ethers.getSigners();
+    [alex, bob, tracy, kim, tirtha, platformWallet, platformWallet1, six, seven, eight, nine, ten, eleven] = this.accounts;
     const sevenTierAddressList = [bob.address, tracy.address, alex.address, kim.address, tirtha.address, six.address, seven.address, eight.address, nine.address, ten.address, eleven.address];
     const sevenTierDistrList = [
       1011250,

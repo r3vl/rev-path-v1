@@ -31,7 +31,7 @@ async function main() {
   );
 
   const libraryAddress = revenuePath.address;
-  const feePercentage = 100; //1%
+  const feePercentage = 100000; //1%
 
   // 3. deploy Main with library
   const ReveelMain = await hre.ethers.getContractFactory("ReveelMain");
