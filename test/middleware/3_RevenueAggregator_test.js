@@ -1,8 +1,7 @@
 const { expect } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { constants } = require("@openzeppelin/test-helpers");
-const { BigNumber } = require("ethers");
 
 /*************************************
  * @summary Test Suite around Revenue Path
@@ -24,10 +23,9 @@ let SimpleToken;
 let RevenueAggregator;
 
 let reveelFactory;
-let revenuePath;
 let simpleToken;
 let revenueAggregator;
-const provider = waffle.provider;
+const provider = ethers.provider;
 
 async function pathInitializerFixture() {
   const tierOneAddressList = [bob.address, tracy.address, alex.address, kim.address];

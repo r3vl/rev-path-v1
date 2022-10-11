@@ -1,6 +1,7 @@
-import "@nomiclabs/hardhat-waffle";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "hardhat-gas-reporter";
@@ -11,8 +12,7 @@ import { resolve } from "path";
 import "./tasks/accounts";
 
 import { config as dotenvConfig } from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
-import { NetworkUserConfig } from "hardhat/types";
+import { HardhatUserConfig, NetworkUserConfig } from "hardhat/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
@@ -65,6 +65,9 @@ const config: HardhatUserConfig = {
     excludeContracts: [],
     src: "./contracts",
   },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
   docgen: {
     path: "./docs",
     clear: true,
@@ -81,6 +84,7 @@ const config: HardhatUserConfig = {
     kovan: getChainConfig("kovan"),
     rinkeby: getChainConfig("rinkeby"),
     ropsten: getChainConfig("ropsten"),
+    mainnet: getChainConfig("mainnet"),
   },
   paths: {
     artifacts: "./artifacts",

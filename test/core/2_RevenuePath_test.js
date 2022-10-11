@@ -1,8 +1,6 @@
 const { expect } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { constants } = require("@openzeppelin/test-helpers");
-const { BigNumber } = require("ethers");
 
 /*************************************
  * @summary Test Suite around Revenue Path
@@ -16,6 +14,7 @@ let kim;
 let tirtha;
 
 let platformWallet;
+let platformWallet1;
 let platformFeePercentage;
 
 let ReveelMain;
@@ -24,7 +23,7 @@ let SimpleToken;
 let reveelFactory;
 let revenuePath;
 let simpleToken;
-const provider = waffle.provider;
+const provider = ethers.provider;
 
 async function pathInitializerFixture() {
   const tierOneAddressList = [bob.address, tracy.address, alex.address, kim.address];
@@ -52,8 +51,7 @@ context("RevenuePath: Adding New Tiers", function () {
     ReveelMain = await ethers.getContractFactory("ReveelMain");
     RevenuePath = await ethers.getContractFactory("RevenuePath");
     SimpleToken = await ethers.getContractFactory("SimpleToken");
-    [alex, bob, tracy, kim, tirtha, platformWallet,platformWallet1] = this.accounts;
-
+    [alex, bob, tracy, kim, tirtha, platformWallet, platformWallet1] = this.accounts;
     platformFeePercentage = 100;
 
     const libraryAddress = (await RevenuePath.deploy()).address;
@@ -207,7 +205,7 @@ context("RevenuePath: Adding New Tiers", function () {
     const revenuePath = RevenuePath.attach(revPathAddress);
     tier = [[alex.address, bob.address, tracy.address, tirtha.address]];
     distributionList = [[2000, 2000, 3000, 3000]];
-    previousTierLimit = [ethers.utils.parseEther("1.3")];
+    const previousTierLimit = [ethers.utils.parseEther("1.3")];
 
     await revenuePath.addRevenueTier(tier, distributionList, previousTierLimit);
 
@@ -296,7 +294,7 @@ context("RevenuePath: Update paths", function () {
     const updateTx = await revenuePath.updateErc20Distribution(tier, distributionList);
     await updateTx.wait();
 
-    kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
+    const kimSharesAfterUpdate = await revenuePath.getErc20WalletShare(kim.address);
     expect(kimSharesAfterUpdate).to.be.equal(0);
 
     
