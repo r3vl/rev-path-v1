@@ -112,7 +112,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
     await expect(revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
       RevenuePath,
-      "WalletAndDistributionCountMismatch",
+      "WalletAndDistrbtionCtMismatch",
     );
   });
 
@@ -126,7 +126,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
     await expect(revenuePath.addRevenueTier(tiers, distributionLists, previousTierLimit)).to.be.revertedWithCustomError(
       RevenuePath,
-      "WalletAndDistributionCountMismatch",
+      "WalletAndDistrbtionCtMismatch",
     );
   });
 
@@ -149,7 +149,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
     await expect(revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
       RevenuePath,
-      "LimitNotGreaterThanTotalDistributed",
+      "LimitLessThanTotalDistributed",
     );
   });
 
@@ -160,7 +160,7 @@ context("RevenuePath: Adding New Tiers", function () {
 
     await expect(revenuePath.addRevenueTier(tier, distributionList, previousTierLimit)).to.be.revertedWithCustomError(
       RevenuePath,
-      "TotalShareNotHundred",
+      "TotalShareNot100",
     );
   });
   it("Reverts if adding revenue path to immutable contract ", async () => {
@@ -332,7 +332,7 @@ context("RevenuePath: Update paths", function () {
 
       await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
         RevenuePath,
-        "LimitNotGreaterThanTotalDistributed",
+        "LimitLessThanTotalDistributed",
       );
     });
 
@@ -351,7 +351,7 @@ context("RevenuePath: Update paths", function () {
 
       await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 1)).to.be.revertedWithCustomError(
         RevenuePath,
-        "LimitNotGreaterThanTotalDistributed",
+        "LimitLessThanTotalDistributed",
       );
     });
 
@@ -380,7 +380,7 @@ context("RevenuePath: Update paths", function () {
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 2)).to.be.revertedWithCustomError(
       RevenuePath,
-      "WalletAndDistributionCountMismatch",
+      "WalletAndDistrbtionCtMismatch",
     );
   });
 
@@ -391,7 +391,7 @@ context("RevenuePath: Update paths", function () {
 
     await expect(revenuePath.updateRevenueTier(tier, distributionList, newTierLimit, 2)).to.be.revertedWithCustomError(
       RevenuePath,
-      "TotalShareNotHundred",
+      "TotalShareNot100",
     );
   });
 
@@ -401,7 +401,7 @@ context("RevenuePath: Update paths", function () {
 
     await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
-      "TotalShareNotHundred",
+      "TotalShareNot100",
     );
   });
 
@@ -411,7 +411,7 @@ context("RevenuePath: Update paths", function () {
 
     await expect(revenuePath.updateErc20Distribution(tier, distributionList)).to.be.revertedWithCustomError(
       RevenuePath,
-      "WalletAndDistributionCountMismatch",
+      "WalletAndDistrbtionCtMismatch",
     );
   });
 });
