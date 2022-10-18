@@ -212,9 +212,19 @@ context("ReveelMain: Path Creation", function () {
     tierLimits.pop();
   });
 
-  it("Create Revenue Path with single tier", async () => {
+  it.only("Create Revenue Path with single tier", async () => {
     const tier = [[alex.address, bob.address, tracy.address, tirtha.address, kim.address]];
-    const distributionList = [[2000, 2000, 2000, 2000, 2000]];
+
+    for (let i = 0; i < 200; ++i) {
+      tier[0].push(ethers.Wallet.createRandom().address);
+    }
+    const distributionList = [tier[0].map(_ => Math.floor(1e4 / tier[0].length))];
+    let total = distributionList[0].reduce((a, b) => a + b, 0);
+    console.log({
+      walletCounts: distributionList[0].length,
+    });
+    distributionList[0][0] = distributionList[0][0] + (1e4 - total);
+    total = distributionList[0].reduce((a, b) => a + b, 0);
     const tierLimit = [];
 
     const revPath = await reveelFactory.createRevenuePath(tier, distributionList, tierLimit, "Music OGs", true);

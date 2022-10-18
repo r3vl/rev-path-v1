@@ -17,7 +17,7 @@ contract ReveelMain is Ownable, Pausable {
     address private libraryAddress;
     //@notice The list of revenue path contracts
     RevenuePath[] private revenuePaths;
-    
+
 
     /********************************
      *           EVENTS              *
@@ -25,7 +25,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Emits when a new revenue path is created
      * @param path The address of the new revenue path
      */
-    event RevenuePathCreated(RevenuePath indexed path, string name);
+    event RevenuePathCreated(RevenuePath indexed path, string name, address[][] wallets);
     /** @notice Updates the libaray contract address
      * @param newLibrary The address of the library contract
      */
@@ -100,7 +100,7 @@ contract ReveelMain is Ownable, Pausable {
         pathInfo.factory = address(this);
 
         path.initialize(_walletList, _distribution, tierLimit, pathInfo, msg.sender);
-        emit RevenuePathCreated(path,_name);
+        emit RevenuePathCreated(path,_name,_walletList);
     }
 
     /** @notice Sets the libaray contract address
@@ -118,7 +118,7 @@ contract ReveelMain is Ownable, Pausable {
      * @param newFeePercentage The new fee percentage
      */
     function setPlatformFee(uint16 newFeePercentage) external onlyOwner {
-        
+
         if(platformFee > BASE){
             revert PlatformFeeNotAppropriate();
         }
