@@ -27,15 +27,17 @@ async function main() {
 
   // 2. setting your tier vars, read below for an explanation of each
   const tierOneAddressList = ["0xD6d0c9fC8F1f6cbCa3472052df3678E5b29b2DcA", "0xa8fa3Dd927C938E137b91C3C46EbDF7CC0A86942"];
-  const tierOneFeeDistribution = [5000, 5000]; // both wallets split the tier 50%
+  // array = [50, 50]
+  // distList = array.map((item) => {return item * 10 ** 5})
+  const tierOneFeeDistribution = [5000000, 5000000]; // both wallets split the tier 50%
   const tierOneLimit = ethers.utils.parseEther("0.8");
 
   const tierTwoAddressList = ["0xD6d0c9fC8F1f6cbCa3472052df3678E5b29b2DcA", "0xa8fa3Dd927C938E137b91C3C46EbDF7CC0A86942", "0xfd5D88F326f4F8C497E1AD1E218fCA38F12A3F0D"];
-  const tierTwoFeeDistribution = [3300, 3300, 3400]; // each wallet getting 33-34%
+  const tierTwoFeeDistribution = [3300000, 3300000, 3400000]; // each wallet getting 33-34%
   const tierTwoLimit = ethers.utils.parseEther("1.2");
 
   const tierThreeAddressList = ["0xD6d0c9fC8F1f6cbCa3472052df3678E5b29b2DcA"];
-  const tierThreeFeeDistribution = [10000]; // one wallet getting 100%
+  const tierThreeFeeDistribution = [10000000]; // one wallet getting 100%
 
   // 2.1 - compiling your address list. Each tier's address list should be in sub array
   const addressList = [tierOneAddressList, tierTwoAddressList, tierThreeAddressList];
