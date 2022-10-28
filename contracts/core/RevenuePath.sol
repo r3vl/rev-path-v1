@@ -18,9 +18,9 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint8 public constant VERSION = 1;
-    uint16 public constant BASE = 1e4;
+    uint24 public constant BASE = 1e7; // 10000
     //@notice Fee percentage that will be applicable for additional tiers
-    uint16 private platformFee;
+    uint24 private platformFee;
     //@notice Fee percentage that will be applicable for additional tiers
     address private mainFactory;
 
@@ -83,7 +83,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     }
 
     struct PathInfo {
-        uint16 platformFee;
+        uint24 platformFee;
         bool isImmutable;
         address factory;
         string name;
@@ -708,7 +708,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
 
     /** @notice Get the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint16) {
+    function getPlatformFee() external view returns (uint24) {
         return platformFee;
     }
 
