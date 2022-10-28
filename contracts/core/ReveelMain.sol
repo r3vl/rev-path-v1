@@ -8,9 +8,9 @@ import "./RevenuePath.sol";
 
 contract ReveelMain is Ownable, Pausable {
 
-    uint16 public constant BASE = 1e4;
+    uint24 public constant BASE = 1e7;
     //@notice Fee percentage that will be applicable for additional tiers
-    uint16 private platformFee;
+    uint24 private platformFee;
     //@notice Address of platform wallet to collect fees
     address private platformWallet;
     //@notice The revenue path contract address who's bytecode will be used for cloning
@@ -34,7 +34,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Updates the platform fee percentage
      * @param newFeePercentage The new fee percentage
      */
-    event UpdatedPlatformFee(uint16 newFeePercentage);
+    event UpdatedPlatformFee(uint24 newFeePercentage);
 
     /** @notice Updates the platform fee collecting wallet
      * @param newWallet The new fee collecting wallet
@@ -62,7 +62,7 @@ contract ReveelMain is Ownable, Pausable {
 
     constructor(
         address _libraryAddress,
-        uint16 _platformFee,
+        uint24 _platformFee,
         address _platformWallet
     ) {
         if (_libraryAddress == address(0) || _platformWallet == address(0)) {
@@ -117,7 +117,7 @@ contract ReveelMain is Ownable, Pausable {
     /** @notice Set the platform fee percentage
      * @param newFeePercentage The new fee percentage
      */
-    function setPlatformFee(uint16 newFeePercentage) external onlyOwner {
+    function setPlatformFee(uint24 newFeePercentage) external onlyOwner {
         
         if(platformFee > BASE){
             revert PlatformFeeNotAppropriate();
@@ -164,7 +164,7 @@ contract ReveelMain is Ownable, Pausable {
 
     /** @notice Gets the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint16) {
+    function getPlatformFee() external view returns (uint24) {
         return platformFee;
     }
 

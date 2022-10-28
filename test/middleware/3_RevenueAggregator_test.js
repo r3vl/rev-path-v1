@@ -29,15 +29,15 @@ const provider = ethers.provider;
 
 async function pathInitializerFixture() {
   const tierOneAddressList = [bob.address, tracy.address, alex.address, kim.address];
-  const tierOneFeeDistribution = [2000, 3000, 3000, 2000];
+  const tierOneFeeDistribution = [2000000, 3000000, 3000000, 2000000];
   const tierOneLimit = ethers.utils.parseEther("0.8");
 
   const tierTwoAddressList = [tracy.address, kim.address, alex.address];
-  const tierTwoFeeDistribution = [3300, 3300, 3400];
+  const tierTwoFeeDistribution = [3300000, 3300000, 3400000];
   const tierTwoLimit = ethers.utils.parseEther("1.2");
 
   const tierThreeAddressList = [tirtha.address, bob.address];
-  const tierThreeFeeDistribution = [5000, 5000];
+  const tierThreeFeeDistribution = [5000000, 5000000];
 
   const tiers = [tierOneAddressList, tierTwoAddressList, tierThreeAddressList];
   const distributionLists = [tierOneFeeDistribution, tierTwoFeeDistribution, tierThreeFeeDistribution];
@@ -54,7 +54,7 @@ before(async () => {
   RevenueAggregator = await ethers.getContractFactory("RevenueAggregator");
   [alex, bob, tracy, kim, tirtha, platformWallet] = this.accounts;
 
-  platformFeePercentage = 100;
+  platformFeePercentage = 100000;
 
   const libraryAddress = (await RevenuePath.deploy()).address;
   reveelFactory = await ReveelMain.deploy(libraryAddress, platformFeePercentage, platformWallet.address);
@@ -73,7 +73,7 @@ before(async () => {
 
   const revPath2 = await reveelFactory.createRevenuePath(
     [[bob.address, tracy.address, alex.address, kim.address]],
-    [[2200, 2800, 3000, 2000]],
+    [[2200000, 2800000, 3000000, 2000000]],
     [],
     "Konoha Shinobis 2",
     true,
