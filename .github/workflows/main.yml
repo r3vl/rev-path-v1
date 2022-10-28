@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
 env:
   PRIVATE_KEY: $PRIVATE_KEY
+  INFURA_API_KEY: $INFURA_API_KEY
 jobs:
   test-branch:
     runs-on: ubuntu-latest
