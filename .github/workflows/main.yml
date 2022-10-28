@@ -3,7 +3,8 @@ name: Unit Tests
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
+env:
+  PRIVATE_KEY: $PRIVATE_KEY
 jobs:
   test-branch:
     runs-on: ubuntu-latest
