@@ -19,19 +19,16 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
 
     uint256 public constant BASE = 1e7; // 10000
     uint8 public constant VERSION = 1;
-
-    //@notice Addres of platform wallet to collect fees
-    address private platformFeeWallet;
+    //@notice Fee percentage that will be applicable for additional tiers
+    uint16 private platformFee;
+    //@notice Fee percentage that will be applicable for additional tiers
+    address private mainFactory;
 
     //@notice Status to flag if fee is applicable to the revenue paths
     bool private feeRequired;
-
     //@notice Status to flag if revenue path is immutable. True if immutable
     bool private isImmutable;
-
-    //@notice Fee percentage that will be applicable for additional tiers
-    uint88 private platformFee;
-
+    
     //@notice Current ongoing tier for eth distribution, in case multiple tiers are added
     uint256 private currentTier;
 
@@ -42,8 +39,6 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     uint256 private totalReleased;
 
     string private name;
-
-    address private mainFactory;
 
     /// ETH
 
@@ -88,11 +83,10 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     }
 
     struct PathInfo {
-        uint88 platformFee;
-        address platformWallet;
+        uint16 platformFee;
         bool isImmutable;
-        string name;
         address factory;
+        string name;
     }
 
     Revenue[] private revenueTiers;
@@ -178,7 +172,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param walletCount Length of wallet list
      * @param distributionCount Length of distribution list
      */
-    error WalletAndDistributionCountMismatch(uint256 walletCount, uint256 distributionCount);
+    error WalletAndDistrbtionCtMismatch(uint256 walletCount, uint256 distributionCount);
 
     /** @dev Reverts when passed wallet list and tier limit count doesn't add up.
        The tier limit count should be 1 less than wallet list
@@ -195,7 +189,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param alreadyDistributed The amount of ETH that has already been distributed for that tier
      * @param proposedNewLimit The amount of ETH proposed to be added/updated as limit for the given tier
      */
-    error LimitNotGreaterThanTotalDistributed(uint256 alreadyDistributed, uint256 proposedNewLimit);
+    error LimitLessThanTotalDistributed(uint256 alreadyDistributed, uint256 proposedNewLimit);
 
     /** @dev Reverts when the tier is not eligible for being updated.
       Requested tier for update must be greater than or equal to current tier.
@@ -225,12 +219,12 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      * @param contractBalance  The total balance of ETH available in the contract
      * @param requiredAmount The total amount of ETH requested for withdrawal
      */
-    error InsufficentBalance(uint256 contractBalance, uint256 requiredAmount);
+    error InsufficientBal(uint256 contractBalance, uint256 requiredAmount);
 
     /**
      * @dev Reverts when sum of all distribution is not equal to BASE
      */
-    error TotalShareNotHundred();
+    error TotalShareNot100();
 
     /**
      *  @dev Reverts when duplicate wallet entry is present during addition or updates
@@ -304,7 +298,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         address _owner
     ) external initializer {
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -322,7 +316,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             uint256 walletMembers = _walletList[i].length;
 
             if (walletMembers != _distribution[i].length) {
-                revert WalletAndDistributionCountMismatch({
+                revert WalletAndDistrbtionCtMismatch({
                     walletCount: walletMembers,
                     distributionCount: _distribution[i].length
                 });
@@ -353,7 +347,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
                 }
             }
             if (totalShare != BASE) {
-                revert TotalShareNotHundred();
+                revert TotalShareNot100();
             }
             revenueTiers.push(tier);
 
@@ -376,10 +370,8 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         if (revenueTiers.length > 1) {
             feeRequired = true;
         }
-        platformFeeWallet = pathInfo.platformWallet;
-
-        platformFee = pathInfo.platformFee;
         mainFactory = pathInfo.factory;
+        platformFee = pathInfo.platformFee;
         isImmutable = pathInfo.isImmutable;
         name = pathInfo.name;
         _transferOwnership(_owner);
@@ -396,7 +388,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         uint256[] calldata previousTierLimit
     ) external isAllowed onlyOwner {
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -416,7 +408,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
 
             if (previousTierLimit[i] < totalDistributed[nextRevenueTier - 1]) {
-                revert LimitNotGreaterThanTotalDistributed({
+                revert LimitLessThanTotalDistributed({
                     alreadyDistributed: totalDistributed[nextRevenueTier - 1],
                     proposedNewLimit: previousTierLimit[i]
                 });
@@ -426,7 +418,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             uint256 walletMembers = _walletList[i].length;
 
             if (walletMembers != _distribution[i].length) {
-                revert WalletAndDistributionCountMismatch({
+                revert WalletAndDistrbtionCtMismatch({
                     walletCount: walletMembers,
                     distributionCount: _distribution[i].length
                 });
@@ -454,7 +446,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
 
             if (totalShares != BASE) {
-                revert TotalShareNotHundred();
+                revert TotalShareNot100();
             }
             revenueTiers.push(tier);
             nextRevenueTier += 1;
@@ -492,7 +484,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
 
             if (newLimit < totalDistributed[tierNumber]) {
-                revert LimitNotGreaterThanTotalDistributed({
+                revert LimitLessThanTotalDistributed({
                     alreadyDistributed: totalDistributed[tierNumber],
                     proposedNewLimit: newLimit
                 });
@@ -500,7 +492,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -540,7 +532,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             }
         }
         if (totalShares != BASE) {
-            revert TotalShareNotHundred();
+            revert TotalShareNot100();
         }
 
         revenueTiers[tierNumber].walletList = newWalletList;
@@ -557,7 +549,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         onlyOwner
     {
         if (_walletList.length != _distribution.length) {
-            revert WalletAndDistributionCountMismatch({
+            revert WalletAndDistrbtionCtMismatch({
                 walletCount: _walletList.length,
                 distributionCount: _distribution.length
             });
@@ -589,7 +581,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         if (totalShares != BASE) {
-            revert TotalShareNotHundred();
+            revert TotalShareNot100();
         }
 
         emit ERC20RevenueUpdated(_walletList, _distribution);
@@ -603,18 +595,20 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
             revert InsufficientWithdrawalBalance();
         }
 
+        uint256 thisRelease;
         uint256 payment = ethRevenuePending[account];
+        thisRelease = payment;
         released[account] += payment;
-        totalReleased += payment;
         ethRevenuePending[account] = 0;
 
         if (feeAccumulated > 0) {
             uint256 value = feeAccumulated;
             feeAccumulated = 0;
-            totalReleased += value;
-            platformFeeWallet = IReveelMain(mainFactory).getPlatformWallet();
-            sendValue(payable(platformFeeWallet), value);
+            thisRelease += value;
+            sendValue(payable(IReveelMain(mainFactory).getPlatformWallet()), value);
         }
+
+        totalReleased += thisRelease;
 
         sendValue(account, payment);
         emit PaymentReleased(account, payment);
@@ -709,12 +703,12 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
     /** @notice Get the platform wallet address
      */
     function getPlatformWallet() external view returns (address) {
-        return platformFeeWallet;
+        return IReveelMain(mainFactory).getPlatformWallet();
     }
 
     /** @notice Get the platform fee percentage
      */
-    function getPlatformFee() external view returns (uint256) {
+    function getPlatformFee() external view returns (uint16) {
         return platformFee;
     }
 
@@ -773,7 +767,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
      */
     function sendValue(address payable recipient, uint256 amount) internal {
         if (address(this).balance < amount) {
-            revert InsufficentBalance({ contractBalance: address(this).balance, requiredAmount: amount });
+            revert InsufficientBal({ contractBalance: address(this).balance, requiredAmount: amount });
         }
 
         (bool success, ) = recipient.call{ value: amount }("");
@@ -798,8 +792,7 @@ contract RevenuePath is Ownable, Initializable, ReentrancyGuard {
         }
 
         uint256 totalDistributionAmount = currentTierDistribution;
-
-        if (platformFee > 0 && feeRequired) {
+        if (feeRequired && platformFee > 0) {
             uint256 feeDeduction = ((currentTierDistribution * platformFee) / BASE);
             feeAccumulated += feeDeduction;
             currentTierDistribution -= feeDeduction;

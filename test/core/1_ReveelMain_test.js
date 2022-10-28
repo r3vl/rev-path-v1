@@ -199,7 +199,7 @@ context("ReveelMain: Path Creation", function () {
 
     await expect(
       reveelFactory.createRevenuePath(tiers, distributionLists, tierLimits, "Music OGs", true),
-    ).to.be.revertedWithCustomError(RevenuePath, "WalletAndDistributionCountMismatch");
+    ).to.be.revertedWithCustomError(RevenuePath, "WalletAndDistrbtionCtMismatch");
     tiers.pop();
   });
 
@@ -234,7 +234,7 @@ context("ReveelMain: Path Creation", function () {
 
     await expect(
       reveelFactory.createRevenuePath(tier, distributionList, tierLimit, "Music OGs", true),
-    ).to.be.revertedWithCustomError(RevenuePath, "TotalShareNotHundred");
+    ).to.be.revertedWithCustomError(RevenuePath, "TotalShareNot100");
   });
 
   it("Reverts multi tier revenue path creation if share not equal to 100% ", async () => {
@@ -243,7 +243,7 @@ context("ReveelMain: Path Creation", function () {
 
     await expect(
       reveelFactory.createRevenuePath(tiers, distributionLists, tierLimits, "Music OGs", true),
-    ).to.be.revertedWithCustomError(RevenuePath, "TotalShareNotHundred");
+    ).to.be.revertedWithCustomError(RevenuePath, "TotalShareNot100");
   });
 
   it("Reverts revenue path creation when contract state to paused", async () => {
