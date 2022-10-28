@@ -61,7 +61,9 @@ context("RevenuePath: Adding New Tiers", function () {
     SimpleToken = await ethers.getContractFactory("SimpleToken");
     [alex, bob, tracy, kim, tirtha, platformWallet, platformWallet1, six, seven, eight, nine, ten, eleven] = this.accounts;
 
-    platformFeePercentage = 100000;
+    const oneHundredPercent = 10000000;
+    const onePercent = 100000;
+    platformFeePercentage = onePercent;
 
     const libraryAddress = (await RevenuePath.deploy()).address;
     reveelFactory = await ReveelMain.deploy(libraryAddress, platformFeePercentage, platformWallet.address);
@@ -711,106 +713,106 @@ context("RevenuePath: Miscellenious", function () {
   });
 });
 
-context("RevenuePath: Many decimals", function () {
-  before(async () => {
-    this.accounts = await ethers.getSigners();
-    [alex, bob, tracy, kim, tirtha, platformWallet, platformWallet1, six, seven, eight, nine, ten, eleven] = this.accounts;
-    const sevenTierAddressList = [bob.address, tracy.address, alex.address, kim.address, tirtha.address, six.address, seven.address, eight.address, nine.address, ten.address, eleven.address];
-    const sevenTierDistrList = [
-      1011250,
-      1011250,
-      323750,
-      500625,
-      500625,
-      90000,
-      2250000,
-      2937500,
-      840000,
-      35000,
-      500000
-    ];
-    const tierOneLimit = ethers.utils.parseEther("0.8");
+// context("RevenuePath: Many decimals", function () {
+//   before(async () => {
+//     this.accounts = await ethers.getSigners();
+//     [alex, bob, tracy, kim, tirtha, platformWallet, platformWallet1, six, seven, eight, nine, ten, eleven] = this.accounts;
+//     const sevenTierAddressList = [bob.address, tracy.address, alex.address, kim.address, tirtha.address, six.address, seven.address, eight.address, nine.address, ten.address, eleven.address];
+//     const sevenTierDistrList = [
+//       1011250,
+//       1011250,
+//       323750,
+//       500625,
+//       500625,
+//       90000,
+//       2250000,
+//       2937500,
+//       840000,
+//       35000,
+//       500000
+//     ];
+//     const tierOneLimit = ethers.utils.parseEther("0.8");
     
-    const tierLimits = [];
+//     const tierLimits = [];
 
-    const sevenTierRevPath = await reveelFactory.createRevenuePath(
-      [sevenTierAddressList],
-      [sevenTierDistrList],
-      [],
-      "11 path",
-      false,
-    );
-    await sevenTierRevPath.wait();
-    const sevenTierRevPathAddress = (await reveelFactory.getPaths())[0][0];
-    console.log("revPathAddress", sevenTierRevPathAddress)
-    sevenTierRevenuePath = await RevenuePath.attach(sevenTierRevPathAddress);
-  });
+//     const sevenTierRevPath = await reveelFactory.createRevenuePath(
+//       [sevenTierAddressList],
+//       [sevenTierDistrList],
+//       [],
+//       "11 path",
+//       false,
+//     );
+//     await sevenTierRevPath.wait();
+//     const sevenTierRevPathAddress = (await reveelFactory.getPaths())[0][0];
+//     console.log("revPathAddress", sevenTierRevPathAddress)
+//     sevenTierRevenuePath = await RevenuePath.attach(sevenTierRevPathAddress);
+//   });
 
-  it(" Call getters to check value", async () => {
-    await expect(await sevenTierRevenuePath.getPlatformWallet()).to.be.equal(platformWallet.address);
-    await expect(await sevenTierRevenuePath.getPlatformFee()).to.be.equal(platformFeePercentage);
-    await expect(await sevenTierRevenuePath.getImmutabilityStatus()).to.be.equal(false);
-    await expect(await sevenTierRevenuePath.getTotalEthReleased()).to.be.equal(0);
-    await expect(await sevenTierRevenuePath.getRevenuePathName()).to.be.equal("11 path");
-    await expect(await sevenTierRevenuePath.getEthWithdrawn(bob.address)).to.be.equal(0);
-    await expect(await sevenTierRevenuePath.getErc20WalletShare(bob.address)).to.be.equal(5000000);
-    await expect(await sevenTierRevenuePath.getTotalErc20Released(simpleToken.address)).to.be.equal(0);
-  });
+//   it(" Call getters to check value", async () => {
+//     await expect(await sevenTierRevenuePath.getPlatformWallet()).to.be.equal(platformWallet.address);
+//     await expect(await sevenTierRevenuePath.getPlatformFee()).to.be.equal(platformFeePercentage);
+//     await expect(await sevenTierRevenuePath.getImmutabilityStatus()).to.be.equal(false);
+//     await expect(await sevenTierRevenuePath.getTotalEthReleased()).to.be.equal(0);
+//     await expect(await sevenTierRevenuePath.getRevenuePathName()).to.be.equal("11 path");
+//     await expect(await sevenTierRevenuePath.getEthWithdrawn(bob.address)).to.be.equal(0);
+//     await expect(await sevenTierRevenuePath.getErc20WalletShare(bob.address)).to.be.equal(5000000);
+//     await expect(await sevenTierRevenuePath.getTotalErc20Released(simpleToken.address)).to.be.equal(0);
+//   });
 
-  it("User gets proper distribution for ETH ", async () => {
-    const tx = await alex.sendTransaction({
-      to: sevenTierRevenuePath.address,
-      value: ethers.utils.parseEther("3"),
-    });
-    console.log("sevenTierRevenuePath.address", sevenTierRevenuePath.address)
-    const firstTierRevShare = (await sevenTierRevenuePath.getRevenueProportion(0, tracy.address)) / 100000;
-    const firstTierRevenue = ((await sevenTierRevenuePath.getTierDistributedAmount(0)) * firstTierRevShare) / 100;
-    const sevenName = await sevenTierRevenuePath.getRevenuePathName()
-    console.log("name check", sevenName)
-    console.log("firstTier", firstTierRevShare, firstTierRevenue)
-    let totalRevenue = firstTierRevenue;
-    console.log("totalRevenue", totalRevenue)
-    //1% Platform fee deducted
-    // totalRevenue -= (totalRevenue * 1) / 100;
-    const pending = await sevenTierRevenuePath.getPendingEthBalance(tracy.address);
+//   it("User gets proper distribution for ETH ", async () => {
+//     const tx = await alex.sendTransaction({
+//       to: sevenTierRevenuePath.address,
+//       value: ethers.utils.parseEther("3"),
+//     });
+//     console.log("sevenTierRevenuePath.address", sevenTierRevenuePath.address)
+//     const firstTierRevShare = (await sevenTierRevenuePath.getRevenueProportion(0, tracy.address)) / 100000;
+//     const firstTierRevenue = ((await sevenTierRevenuePath.getTierDistributedAmount(0)) * firstTierRevShare) / 100;
+//     const sevenName = await sevenTierRevenuePath.getRevenuePathName()
+//     console.log("name check", sevenName)
+//     console.log("firstTier", firstTierRevShare, firstTierRevenue)
+//     let totalRevenue = firstTierRevenue;
+//     console.log("totalRevenue", totalRevenue)
+//     //1% Platform fee deducted
+//     // totalRevenue -= (totalRevenue * 1) / 100;
+//     const pending = await sevenTierRevenuePath.getPendingEthBalance(tracy.address);
 
-    expect(totalRevenue.toString()).to.be.equal(pending);
-  });
+//     expect(totalRevenue.toString()).to.be.equal(pending);
+//   });
 
-  it("ETH release is successful ", async () => {
-    const tx = await alex.sendTransaction({
-      to: sevenTierRevenuePath.address,
-      value: ethers.utils.parseEther("0.9"),
-    });
+//   it("ETH release is successful ", async () => {
+//     const tx = await alex.sendTransaction({
+//       to: sevenTierRevenuePath.address,
+//       value: ethers.utils.parseEther("0.9"),
+//     });
 
-    console.log("sevenTierRevenuePath.address", sevenTierRevenuePath.address)
+//     console.log("sevenTierRevenuePath.address", sevenTierRevenuePath.address)
 
-    const prevBalance = await provider.getBalance(bob.address);
-    const pendingPayment = await sevenTierRevenuePath.getPendingEthBalance(bob.address);
+//     const prevBalance = await provider.getBalance(bob.address);
+//     const pendingPayment = await sevenTierRevenuePath.getPendingEthBalance(bob.address);
 
-    const releaseFund = await sevenTierRevenuePath.release(bob.address);
-    await releaseFund.wait();
+//     const releaseFund = await sevenTierRevenuePath.release(bob.address);
+//     await releaseFund.wait();
 
-    const currBalance = await provider.getBalance(bob.address);
-    expect(prevBalance.add(pendingPayment)).to.be.equal(currBalance);
+//     const currBalance = await provider.getBalance(bob.address);
+//     expect(prevBalance.add(pendingPayment)).to.be.equal(currBalance);
 
-    const sevenPrevBalance = await provider.getBalance(kim.address);
-    const sevenPendingPayment = await sevenTierRevenuePath.getPendingEthBalance(kim.address);
+//     const sevenPrevBalance = await provider.getBalance(kim.address);
+//     const sevenPendingPayment = await sevenTierRevenuePath.getPendingEthBalance(kim.address);
 
-    // const sevenReleaseFund = await sevenTierRevenuePath.release(seven.address);
-    // await sevenReleaseFund.wait();
+//     // const sevenReleaseFund = await sevenTierRevenuePath.release(seven.address);
+//     // await sevenReleaseFund.wait();
 
-    // const sevenCurrBalance = await provider.getBalance(seven.address);
-    // expect(sevenPrevBalance.add(sevenPendingPayment)).to.be.equal(sevenCurrBalance);
+//     // const sevenCurrBalance = await provider.getBalance(seven.address);
+//     // expect(sevenPrevBalance.add(sevenPendingPayment)).to.be.equal(sevenCurrBalance);
 
-    console.log(
-      "balances",
-      prevBalance,
-      pendingPayment,
-      currBalance,
-      sevenPrevBalance,
-      sevenPendingPayment,
-      // sevenCurrBalance
-    )
-  });
-});
+//     console.log(
+//       "balances",
+//       prevBalance,
+//       pendingPayment,
+//       currBalance,
+//       sevenPrevBalance,
+//       sevenPendingPayment,
+//       // sevenCurrBalance
+//     )
+//   });
+// });
