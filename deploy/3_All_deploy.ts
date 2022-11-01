@@ -31,6 +31,15 @@ async function main() {
   console.log(
     `Reveel main deployed to: ${reveelMain.address}`
   );
+  console.log(
+    "verify with:",
+    "\n",
+    `npx hardhat verify --network ${process.env.HARDHAT_NETWORK} ${revenuePath.address}`,
+    "\n",
+    `npx hardhat verify --network ${process.env.HARDHAT_NETWORK} ${reveelMain.address} "${revenuePath.address}" "${feePercentage}" "${platformWallet}"`,
+    "\n",
+    `make sure your hardhat.config.ts etherscan.apiKey is set to the appropriate etherscan/polygonscan for ${process.env.HARDHAT_NETWORK}`
+  )
 }
 
 main().catch((error) => {

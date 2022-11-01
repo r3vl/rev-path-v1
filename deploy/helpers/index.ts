@@ -7,6 +7,9 @@ export const fetchPlatformWallet = () => {
     case "goerli":
       platformWallet = "0x9a66DC388ac88815B964E6829041F3997FA0b76D";
       break
+    case "mumbai":
+      platformWallet = "0xfd5D88F326f4F8C497E1AD1E218fCA38F12A3F0D";
+      break
     default:
       // enter your platform wallet here:
       platformWallet = "";
@@ -23,6 +26,9 @@ export const fetchReveelMainAddress = () => {
       break;
     case "goerli":
       reveelMainAddress = "0xCD442e1b4a1187e598607a72Edd3267c827DB3de";
+      break
+    case "mumbai":
+      reveelMainAddress = "0xb05Bcdfd259D08728db7517bf3c3CC4262D3b451";
       break
     default:
       // enter your platform wallet here:
