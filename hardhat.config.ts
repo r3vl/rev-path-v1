@@ -23,6 +23,7 @@ const chainIds = {
   mainnet: 1,
   rinkeby: 4,
   ropsten: 3,
+  mumbai: 80001,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -38,7 +39,14 @@ if (!infuraApiKey) {
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + process.env.INFURA_API_KEY;
+  let url: string;
+  switch (network) {
+    case 'mumbai':
+      url = "https://rpc-mumbai.maticvigil.com";
+      break;
+    default:
+      url = "https://" + network + ".infura.io/v3/" + process.env.INFURA_API_KEY;
+  }
   let accounts;
   if (mnemonic) {
     accounts = {
@@ -67,6 +75,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+    // apiKey: process.env.POLYGONSCAN_API_KEY,
   },
   docgen: {
     path: "./docs",
@@ -85,6 +94,7 @@ const config: HardhatUserConfig = {
     rinkeby: getChainConfig("rinkeby"),
     ropsten: getChainConfig("ropsten"),
     mainnet: getChainConfig("mainnet"),
+    mumbai: getChainConfig("mumbai"),
   },
   paths: {
     artifacts: "./artifacts",
