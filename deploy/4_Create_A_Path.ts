@@ -1,4 +1,6 @@
-const hre = require("hardhat");
+import hre, { ethers } from "hardhat";
+import { Event as ethersEvent } from "ethers"
+import { fetchReveelMainAddress } from "./helpers";
 
 /**
  * deploys a complex RevenuePath from a ReveelMain with 5 digits after the decimal
@@ -10,19 +12,7 @@ async function main() {
   const ReveelMain = await hre.ethers.getContractFactory("ReveelMain");
 
   // 1. connect to the current ReveelMain
-  let reveelMainAddress = "";
-  switch (process.env.HARDHAT_NETWORK) {
-    case "mainnet":
-      reveelMainAddress = "0xEF44D8e4eAb1ACB4922B983253B5B50386E8668E";
-      break;
-    case "goerli":
-      reveelMainAddress = "0xCD442e1b4a1187e598607a72Edd3267c827DB3de";
-      break
-    default:
-      // enter your platform wallet here:
-      reveelMainAddress = "";
-      if (reveelMainAddress === "") throw new Error(`you need to set a reveelMain address on: ${process.env.HARDHAT_NETWORK}`);
-  }
+  const reveelMainAddress = fetchReveelMainAddress();
   const reveelMain = await ReveelMain.attach(reveelMainAddress);
 
   // 2. setting your tier vars, read below for an explanation of each
@@ -67,12 +57,14 @@ async function main() {
   )
 
   console.log("sending")
-  const after = await tx.wait();
+  const receipt = await tx.wait();
 
+  const events = receipt.events as ethersEvent[];
+  const filteredEvents = events.filter((e) => e.event === "RevenuePathCreated");
+  const deployedAddress = filteredEvents[0].args?.path;
   console.log(
     "done",
-    tx,
-    after
+    deployedAddress
   );
 }
 

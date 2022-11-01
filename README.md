@@ -263,7 +263,7 @@ npx hardhat node --network hardhat
 npx hardhat console --network localhost
 
 # 3.
-npx hardhat run deploy/3_All_deploy.js --network localhost
+npx hardhat run deploy/3_All_deploy.ts --network localhost
 ```
 
 In the console windows, send yourself some ETH:
